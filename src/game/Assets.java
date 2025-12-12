@@ -14,6 +14,10 @@ public class Assets {
     public static BufferedImage playerJump;   // will use player_hurt
     public static BufferedImage playerFall;
 
+    public static BufferedImage[] enemyWalk;
+    public static BufferedImage enemyFallback;
+
+
     public static BufferedImage playerFallback;
 
     public static void init() {
@@ -43,6 +47,17 @@ playerFall = tryLoad("assets/player_fall.png", "src/assets/player_fall.png");
         } else {
             playerFallback = playerJump; // or null, then it will use orange box
         }
+
+
+        // enemy walk frames (imp)
+enemyWalk = new BufferedImage[2];
+enemyWalk[0] = tryLoad("assets/imp_walk_0.png", "src/assets/imp_walk_0.png");
+enemyWalk[1] = tryLoad("assets/imp_walk_1.png", "src/assets/imp_walk_1.png");
+
+if (enemyWalk[0] != null) {
+    enemyFallback = enemyWalk[0];
+}
+
     }
 
     private static BufferedImage tryLoad(String path1, String path2) {
