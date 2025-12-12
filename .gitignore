@@ -1,0 +1,18 @@
+# Java compiled classes
+*.class
+
+# IntelliJ IDEA
+.idea/
+out/
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+build/
+dist/
+
+# OS junk
+.DS_Store
+Thumbs.db
