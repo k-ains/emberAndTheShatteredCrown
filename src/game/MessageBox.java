@@ -19,26 +19,33 @@ public class MessageBox extends GameObject {
         // message boxes do not move
     }
 
-    @Override
-    public void draw(Graphics g) {
-        if (important) {
-            g.setColor(Color.ORANGE);
+   @Override
+public void draw(Graphics g) {
+    java.awt.image.BufferedImage img = null;
+
+    // important = use exclaim box, otherwise use question box
+    if (important && Assets.boxExclaim != null) {
+        img = Assets.boxExclaim;
+    } else {
+        if (!important && Assets.boxQuestion != null) {
+            img = Assets.boxQuestion;
         } else {
-            g.setColor(Color.YELLOW);
+            if (Assets.boxPlain != null) {
+                img = Assets.boxPlain;
+            }
         }
-        g.fillRect(x, y, width, height);
-
-        g.setColor(Color.BLACK);
-        String symbol;
-
-        if (important) {
-            symbol = "!";
-        } else {
-            symbol = "?";
-        }
-
-        g.drawString(symbol, x + 8, y + 16);
     }
+
+    if (img != null) {
+        g.drawImage(img, x, y, width, height, null);
+    } else {
+        // fallback if images fail to load
+        g.setColor(java.awt.Color.ORANGE);
+        g.fillRect(x, y, width, height);
+        g.setColor(java.awt.Color.WHITE);
+        g.drawRect(x, y, width, height);
+    }
+}
 
     public String getMessage() {
         String value = message;

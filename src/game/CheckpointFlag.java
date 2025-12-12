@@ -7,25 +7,42 @@ public class CheckpointFlag extends GameObject {
 
     private boolean active;
 
-    public CheckpointFlag(int x, int y) {
-        super(x, y, 24, 40);
-        active = false;
-    }
+   public CheckpointFlag(int x, int y) {
+    super(x, y, 32, 48);
+    active = false;
+}
+
 
     @Override
     public void update(SimpleLevel level) { }
 
-    @Override
-    public void draw(Graphics g) {
-        Color poleColor;
-        Color flagColor;
+   @Override
+public void draw(Graphics g) {
+    java.awt.image.BufferedImage img;
+
+    if (active && Assets.flagRaised != null) {
+        img = Assets.flagRaised;
+    } else {
+        if (!active && Assets.flagDown != null) {
+            img = Assets.flagDown;
+        } else {
+            img = null;
+        }
+    }
+
+    if (img != null) {
+        g.drawImage(img, x, y, width, height, null);
+    } else {
+        // fallback: old simple drawing
+        java.awt.Color poleColor;
+        java.awt.Color flagColor;
 
         if (active) {
-            poleColor = Color.WHITE;
-            flagColor = Color.GREEN;
+            poleColor = java.awt.Color.WHITE;
+            flagColor = java.awt.Color.GREEN;
         } else {
-            poleColor = Color.DARK_GRAY;
-            flagColor = Color.RED;
+            poleColor = java.awt.Color.DARK_GRAY;
+            flagColor = java.awt.Color.RED;
         }
 
         g.setColor(poleColor);
@@ -49,6 +66,8 @@ public class CheckpointFlag extends GameObject {
         g.setColor(flagColor);
         g.fillPolygon(xs, ys, 3);
     }
+}
+
 
     public void activate(Player player) {
         if (!active) {

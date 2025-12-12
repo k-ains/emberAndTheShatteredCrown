@@ -172,24 +172,42 @@ public class Player extends GameObject {
                         coinIterator.remove();
                     }
                 }
-            // collision with message boxes (bonk from below)
-            java.util.List<MessageBox> boxes = level.getMessageBoxes();
-            int j = 0;
-            while (j < boxes.size()) {
-                MessageBox box = boxes.get(j);
-                Rectangle boxBounds = box.getBounds();
+            // collision with message boxes (solid + bonk)
+java.util.List<MessageBox> boxes = level.getMessageBoxes();
+int j = 0;
+while (j < boxes.size()) {
+    MessageBox box = boxes.get(j);
+    Rectangle boxBounds = box.getBounds();
 
-                if (playerBounds.intersects(boxBounds) && velY < 0) {
-                    int playerTop = playerBounds.y;
-                    int boxCenterY = boxBounds.y + boxBounds.height / 2;
+    if (playerBounds.intersects(boxBounds)) {
+        int boxTop = boxBounds.y;
+        int boxBottom = boxBounds.y + boxBounds.height;
+        int playerTop = playerBounds.y;
+        int playerBottom = playerBounds.y + height;
 
-                    if (playerTop > boxCenterY) {
-                        showMessage(box.getMessage());
-                    }
-                }
+        // --- landing on top of the box (like a platform) ---
+        if (velY >= 0 && playerBottom <= boxTop + velY) {
+            y = boxTop - height;
+            velY = 0;
+            onGround = true;
+            playerBounds = getBounds();
+        } else {
+            // --- hitting the box from below (bonk + stop jump) ---
+            int boxCenterY = boxBounds.y + boxBounds.height / 2;
 
-                        j = j + 1;
-                    }
+            if (velY < 0 && playerTop > boxCenterY) {
+                // move player just below the box and stop upward motion
+                y = boxBottom;
+                velY = 0;
+                showMessage(box.getMessage());
+                playerBounds = getBounds();
+            }
+        }
+    }
+
+    j = j + 1;
+}
+
 
 
             // collision with checkpoint flags

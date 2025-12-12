@@ -163,40 +163,74 @@ player.updateMessageTimer();
 
         drawHUD(g);
     }
+private void drawHUD(Graphics g) {
+    int hearts = player.getHearts();
+    int maxHearts = player.getMaxHearts();
 
-    private void drawHUD(Graphics g) {
-        int hearts = player.getHearts();
-        int maxHearts = player.getMaxHearts();
+    // -------- HEARTS ROW (top-left) --------
+    int heartSize = 24;
+    int heartSpacing = 28;
+    int heartXStart = 10;
+    int heartY = 24;
 
-        int i = 0;
-        while (i < maxHearts) {
-            int x = 10 + i * 18;
-            int y = 10;
+    int i = 0;
+    while (i < maxHearts) {
+        int x = heartXStart + i * heartSpacing;
+        int y = heartY - heartSize + 4;
 
+        if (i < hearts && Assets.heart != null) {
+            g.drawImage(Assets.heart, x, y, heartSize, heartSize, null);
+        } else {
             if (i < hearts) {
-                g.setColor(Color.RED);
+                g.setColor(java.awt.Color.RED);
             } else {
-                g.setColor(Color.DARK_GRAY);
+                g.setColor(java.awt.Color.DARK_GRAY);
             }
-
-            g.fillOval(x, y, 14, 14);
-
-            i = i + 1;
+            g.fillOval(x, y, heartSize, heartSize);
         }
 
-       g.setColor(Color.YELLOW);
-g.drawString("Coins: " + player.getCoins(), 10, 40);
+        i = i + 1;
+    }
 
-g.setColor(Color.WHITE);
-g.drawString("Current Platforms: " + currentPlatformCount, 10, 60);
-g.drawString("Best Platforms: " + bestPlatformCount, 10, 80);
-String msg = player.getPopupMessage();
-if (player.getPopupTimer() > 0 && msg != null && msg.length() > 0) {
-    g.setColor(Color.WHITE);
-    g.drawString(msg, 10, HEIGHT - 20);
+    // vertical starting point for text/coins below hearts
+    int hudStartY = heartY + 10;  // a bit below the hearts row
+
+    // -------- SPINNING COIN ICON + COUNT --------
+    int coinIconSize = 20;
+    int coinIconX = 10;
+    int coinIconY = hudStartY + coinIconSize; // drawImage uses top-left
+
+    // pick a frame based on time so it spins
+    if (Assets.coinGold != null && Assets.coinGold.length > 0) {
+        long time = System.currentTimeMillis();
+        int hudFrame = (int) ((time / 100) % Assets.coinGold.length); // change 100 for speed
+        java.awt.image.BufferedImage hudImg = Assets.coinGold[hudFrame];
+        g.drawImage(hudImg, coinIconX, coinIconY - coinIconSize, coinIconSize, coinIconSize, null);
+    } else {
+        g.setColor(java.awt.Color.YELLOW);
+        g.fillOval(coinIconX, coinIconY - coinIconSize, coinIconSize, coinIconSize);
+    }
+
+    g.setColor(java.awt.Color.WHITE);
+    g.drawString("x " + player.getCoins(), coinIconX + coinIconSize + 6, coinIconY - 5);
+
+    // -------- PLATFORM TEXT (still below everything) --------
+    int textY = coinIconY + 12;
+
+    g.setColor(java.awt.Color.WHITE);
+    g.drawString("Current Platforms: " + currentPlatformCount, 10, textY);
+    g.drawString("Best Platforms: " + bestPlatformCount, 10, textY + 18);
+
+    // -------- POPUP MESSAGE AT BOTTOM --------
+    String msg = player.getPopupMessage();
+    if (player.getPopupTimer() > 0 && msg != null && msg.length() > 0) {
+        g.setColor(java.awt.Color.WHITE);
+        g.drawString(msg, 10, HEIGHT - 20);
+    }
 }
 
-    }
+
+
 
     @Override
     public void keyPressed(KeyEvent e) {

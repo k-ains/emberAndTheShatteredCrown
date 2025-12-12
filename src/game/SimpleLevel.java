@@ -37,14 +37,19 @@ public class SimpleLevel {
         int floorY = worldHeight - floorHeight;
 
         // big floor at the very bottom
-        Tile floor = new Tile(
-            0,
-            floorY,
-            GamePanel.WIDTH,
-            floorHeight,
-            true
-        );
-        tiles.add(floor);
+       
+
+Tile floor = new Tile(
+    0,
+    floorY,
+    GamePanel.WIDTH,
+    floorHeight,
+    true
+);
+tiles.add(floor);
+
+
+
 
         // ----- RANDOM PLATFORMS, BUT CONTROLLED -----
 
@@ -87,37 +92,44 @@ public class SimpleLevel {
                 }
             }
 
-            Tile platform = new Tile(
-                platformX,
-                platformY,
-                platformWidth,
-                platformHeight,
-                true
-            );
-            tiles.add(platform);
+          Tile platform = new Tile(
+    platformX,
+    platformY,
+    platformWidth,
+    platformHeight,
+    true
+);
+tiles.add(platform);
+
+
 
 boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
 
 if (isCheckpointIndex) {
-    int flagX = platformX + platformWidth / 2 - 12;
-    int flagY = platformY - 40;
+    int flagWidth = 32;
+    int flagHeight = 48;
+
+    int flagX = platformX + platformWidth / 2 - flagWidth / 2;
+    int flagY = platformY - flagHeight;
+
     CheckpointFlag flag = new CheckpointFlag(flagX, flagY);
     checkpoints.add(flag);
 }
+
 
 boolean hasSpike = false;
 
 // spikes on some platforms, but never on checkpoint ones
 if (!isCheckpointIndex && i % 3 == 2) {
-    int spikeWidth = 24;
-    int spikeHeight = 20;
-    int spikeY = platformY - spikeHeight;
+    int spikeWidth = 32;
+int spikeHeight = 28;
+int spikeY = platformY - spikeHeight;
 
-    int margin = 30;
+int margin = 40;
 
-    int laneLeft = platformX + margin;
-    int laneMiddle = platformX + platformWidth / 2 - spikeWidth / 2;
-    int laneRight = platformX + platformWidth - margin - spikeWidth;
+int laneLeft = platformX + margin;
+int laneMiddle = platformX + platformWidth / 2 - spikeWidth / 2;
+int laneRight = platformX + platformWidth - margin - spikeWidth;
 
     int[] laneXs = new int[3];
     laneXs[0] = laneLeft;
@@ -155,10 +167,12 @@ if (!isCheckpointIndex && i % 3 == 2) {
 
 // coins on safe platforms (no checkpoint and no spike)
 if (!isCheckpointIndex && !hasSpike) {
-    int coinX = platformX + platformWidth / 2 - 8;
-    int coinY = platformY - 20;
-    Coin coin = new Coin(coinX, coinY, 1);
-    coins.add(coin);
+   int coinSize = 32;
+int coinX = platformX + platformWidth / 2 - coinSize / 2;
+int coinY = platformY - coinSize - 4; // a little gap above platform
+Coin coin = new Coin(coinX, coinY, 1);
+coins.add(coin);
+
 }
 
 // message boxes ONLY on platforms without checkpoint and without spike
@@ -222,15 +236,16 @@ if (!isCheckpointIndex && !hasSpike) {
 boolean canHaveEnemy = !isCheckpointIndex && !hasSpike && i >= 5 && i % 4 == 1;
 
 if (canHaveEnemy) {
-    int enemyWidth = 28;
-    int enemyHeight = 24;
+    int enemyWidth = 40;
+int enemyHeight = 32;
 
-    int enemyX = platformX + platformWidth / 2 - enemyWidth / 2;
-    int enemyY = platformY - enemyHeight;
+int enemyX = platformX + platformWidth / 2 - enemyWidth / 2;
+int enemyY = platformY - enemyHeight;
 
-    int margin = 20;
-    int enemyLeft = platformX + margin;
-    int enemyRight = platformX + platformWidth - margin;
+int margin = 30;
+int enemyLeft = platformX + margin;
+int enemyRight = platformX + platformWidth - margin;
+
 
     WalkingEnemy enemy = new WalkingEnemy(
         enemyX,
@@ -296,14 +311,25 @@ if (canHaveEnemy) {
 }
 
 
-    public void update() {
+   public void update() {
     int i = 0;
+
+    // update enemies
     while (i < enemies.size()) {
         WalkingEnemy enemy = enemies.get(i);
         enemy.update(this);
         i = i + 1;
     }
+
+    // update coins (for spin animation)
+    i = 0;
+    while (i < coins.size()) {
+        Coin coin = coins.get(i);
+        coin.update(this);
+        i = i + 1;
+    }
 }
+
 
     public List<Tile> getTiles() {
         List<Tile> result = tiles;
