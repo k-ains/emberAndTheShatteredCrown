@@ -36,6 +36,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         requestFocus();
         addKeyListener(this);
 
+        Assets.init();
+
         level = new SimpleLevel();
 
         int startY = level.getWorldHeight() - 120;
@@ -86,9 +88,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
     private void updateGame() {
         player.update(level);
-
-   player.update(level);
-
+        level.update();
+   
 int currentPlatforms = level.getPlatformsReachedCount(player.getY());
 currentPlatformCount = currentPlatforms;
 
@@ -96,6 +97,8 @@ if (currentPlatforms > runMaxPlatformCount) {
     runMaxPlatformCount = currentPlatforms;
     runBestY = player.getY();
 }
+
+player.updateMessageTimer();
 
 
         int desiredCameraY = player.getY() - HEIGHT / 2;
@@ -136,8 +139,13 @@ if (currentPlatforms > runMaxPlatformCount) {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        if (Assets.background != null) {
+    g.drawImage(Assets.background, 0, 0, WIDTH, HEIGHT, null);
+} else {
+    g.setColor(Color.BLACK);
+    g.fillRect(0, 0, WIDTH, HEIGHT);
+}
+
 
         java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
         g2.translate(0, -cameraY);
@@ -182,6 +190,11 @@ g.drawString("Coins: " + player.getCoins(), 10, 40);
 g.setColor(Color.WHITE);
 g.drawString("Current Platforms: " + currentPlatformCount, 10, 60);
 g.drawString("Best Platforms: " + bestPlatformCount, 10, 80);
+String msg = player.getPopupMessage();
+if (player.getPopupTimer() > 0 && msg != null && msg.length() > 0) {
+    g.setColor(Color.WHITE);
+    g.drawString(msg, 10, HEIGHT - 20);
+}
 
     }
 

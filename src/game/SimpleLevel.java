@@ -12,6 +12,8 @@ public class SimpleLevel {
     private List<CheckpointFlag> checkpoints;
     private List<Spike> spikes;
     private List<Coin> coins;
+    private List<MessageBox> messageBoxes;
+    private List<WalkingEnemy> enemies;
 
     private int worldHeight;
     private Random random;
@@ -21,6 +23,8 @@ public class SimpleLevel {
         checkpoints = new ArrayList<CheckpointFlag>();
         spikes = new ArrayList<Spike>();
         coins = new ArrayList<Coin>();
+        messageBoxes = new ArrayList<MessageBox>();
+        enemies = new ArrayList<WalkingEnemy>();
         random = new Random();
 
         int gap = 120;              // vertical distance between platforms
@@ -44,8 +48,8 @@ public class SimpleLevel {
 
         // ----- RANDOM PLATFORMS, BUT CONTROLLED -----
 
-        int platformWidth = 180;
-        int platformHeight = 20;
+        int platformWidth = 260;
+        int platformHeight = 24;
 
         int minXAllowed = 40;
         int maxXAllowed = GamePanel.WIDTH - platformWidth - 40;
@@ -92,32 +96,155 @@ public class SimpleLevel {
             );
             tiles.add(platform);
 
-            boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
+boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
 
-            if (isCheckpointIndex) {
-                int flagX = platformX + platformWidth / 2 - 12;
-                int flagY = platformY - 40;
-                CheckpointFlag flag = new CheckpointFlag(flagX, flagY);
-                checkpoints.add(flag);
-            }
+if (isCheckpointIndex) {
+    int flagX = platformX + platformWidth / 2 - 12;
+    int flagY = platformY - 40;
+    CheckpointFlag flag = new CheckpointFlag(flagX, flagY);
+    checkpoints.add(flag);
+}
 
-            // spikes on some platforms, but never on checkpoint ones
-            if (!isCheckpointIndex && i % 3 == 2) {
-                int spikeWidth = 24;
-                int spikeHeight = 20;
-                int spikeX = platformX + platformWidth / 2 - spikeWidth / 2;
-                int spikeY = platformY - spikeHeight;
-                Spike spike = new Spike(spikeX, spikeY, spikeWidth, spikeHeight);
-                spikes.add(spike);
-            }
+boolean hasSpike = false;
 
-            // coins on safe platforms (no checkpoint and no spike pattern)
-            if (!isCheckpointIndex && i % 3 != 2) {
-                int coinX = platformX + platformWidth / 2 - 8;
-                int coinY = platformY - 20;
-                Coin coin = new Coin(coinX, coinY, 1);
-                coins.add(coin);
-            }
+// spikes on some platforms, but never on checkpoint ones
+if (!isCheckpointIndex && i % 3 == 2) {
+    int spikeWidth = 24;
+    int spikeHeight = 20;
+    int spikeY = platformY - spikeHeight;
+
+    int margin = 30;
+
+    int laneLeft = platformX + margin;
+    int laneMiddle = platformX + platformWidth / 2 - spikeWidth / 2;
+    int laneRight = platformX + platformWidth - margin - spikeWidth;
+
+    int[] laneXs = new int[3];
+    laneXs[0] = laneLeft;
+    laneXs[1] = laneMiddle;
+    laneXs[2] = laneRight;
+
+    boolean[] used = new boolean[3];
+
+    int spikeCount = 1;
+
+    int roll = random.nextInt(100);
+    if (roll < 40) {
+        spikeCount = 2;
+    }
+
+    int s = 0;
+    while (s < spikeCount) {
+        int laneIndex = random.nextInt(3);
+
+        if (!used[laneIndex]) {
+            int spikeX = laneXs[laneIndex];
+
+            Spike spike = new Spike(spikeX, spikeY, spikeWidth, spikeHeight);
+            spikes.add(spike);
+
+            used[laneIndex] = true;
+            s = s + 1;
+        }
+    }
+
+    hasSpike = true;
+}
+
+
+
+// coins on safe platforms (no checkpoint and no spike)
+if (!isCheckpointIndex && !hasSpike) {
+    int coinX = platformX + platformWidth / 2 - 8;
+    int coinY = platformY - 20;
+    Coin coin = new Coin(coinX, coinY, 1);
+    coins.add(coin);
+}
+
+// message boxes ONLY on platforms without checkpoint and without spike
+if (!isCheckpointIndex && !hasSpike) {
+
+    // early movement tip (first safe platform above floor)
+    if (i == 0) {
+        int boxX = platformX + platformWidth / 2 - 12;
+        int boxY = platformY - 70;
+        MessageBox box = new MessageBox(
+            boxX,
+            boxY,
+            false,
+            "Use A/D or arrow keys to move."
+        );
+        messageBoxes.add(box);
+    }
+
+    // spike warning: BEFORE the first spike (first spike at i = 2)
+    if (i == 1) {
+        int boxX = platformX + platformWidth / 2 - 12;
+        int boxY = platformY - 70;
+        MessageBox box = new MessageBox(
+            boxX,
+            boxY,
+            true,
+            "Watch out for spikes above!"
+        );
+        messageBoxes.add(box);
+    }
+
+    // checkpoint explanation: BEFORE the first checkpoint (checkpoint at i = 4)
+    if (i == 3) {
+        int boxX = platformX + platformWidth / 2 - 12;
+        int boxY = platformY - 70;
+        MessageBox box = new MessageBox(
+            boxX,
+            boxY,
+            true,
+            "Flags ahead are checkpoints. Touch to save progress!"
+        );
+        messageBoxes.add(box);
+    }
+        // enemy warning: BEFORE the first walking enemy (first enemy at i = 13)
+    if (i == 12) {
+        int boxX = platformX + platformWidth / 2 - 12;
+        int boxY = platformY - 70;  // same height you liked
+        MessageBox box = new MessageBox(
+            boxX,
+            boxY,
+            true,
+            "Enemies ahead! Don't touch them."
+        );
+        messageBoxes.add(box);
+    }
+
+    // more messages insert here
+}
+
+    // enemies on some harder platforms: no checkpoint, no spike, a bit higher up
+boolean canHaveEnemy = !isCheckpointIndex && !hasSpike && i >= 5 && i % 4 == 1;
+
+if (canHaveEnemy) {
+    int enemyWidth = 28;
+    int enemyHeight = 24;
+
+    int enemyX = platformX + platformWidth / 2 - enemyWidth / 2;
+    int enemyY = platformY - enemyHeight;
+
+    int margin = 20;
+    int enemyLeft = platformX + margin;
+    int enemyRight = platformX + platformWidth - margin;
+
+    WalkingEnemy enemy = new WalkingEnemy(
+        enemyX,
+        enemyY,
+        enemyWidth,
+        enemyHeight,
+        enemyLeft,
+        enemyRight,
+        2
+    );
+    enemies.add(enemy);
+}
+
+
 
             previousX = platformX;
             i = i + 1;
@@ -125,37 +252,58 @@ public class SimpleLevel {
     }
 
     public void draw(Graphics g) {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
-
-        int i = 0;
-        while (i < tiles.size()) {
-            Tile t = tiles.get(i);
-            t.draw(g);
-            i = i + 1;
-        }
-
-        i = 0;
-        while (i < checkpoints.size()) {
-            CheckpointFlag flag = checkpoints.get(i);
-            flag.draw(g);
-            i = i + 1;
-        }
-
-        i = 0;
-        while (i < spikes.size()) {
-            Spike spike = spikes.get(i);
-            spike.draw(g);
-            i = i + 1;
-        }
-
-        i = 0;
-        while (i < coins.size()) {
-            Coin coin = coins.get(i);
-            coin.draw(g);
-            i = i + 1;
-        }
+    int i = 0;
+    while (i < tiles.size()) {
+        Tile t = tiles.get(i);
+        t.draw(g);
+        i = i + 1;
     }
+
+    i = 0;
+    while (i < checkpoints.size()) {
+        CheckpointFlag flag = checkpoints.get(i);
+        flag.draw(g);
+        i = i + 1;
+    }
+
+    i = 0;
+    while (i < spikes.size()) {
+        Spike spike = spikes.get(i);
+        spike.draw(g);
+        i = i + 1;
+    }
+
+    i = 0;
+    while (i < coins.size()) {
+        Coin coin = coins.get(i);
+        coin.draw(g);
+        i = i + 1;
+    }
+
+    i = 0;
+    while (i < messageBoxes.size()) {
+        MessageBox box = messageBoxes.get(i);
+        box.draw(g);
+        i = i + 1;
+    }
+
+    i = 0;
+    while (i < enemies.size()) {
+        WalkingEnemy enemy = enemies.get(i);
+        enemy.draw(g);
+        i = i + 1;
+    }
+}
+
+
+    public void update() {
+    int i = 0;
+    while (i < enemies.size()) {
+        WalkingEnemy enemy = enemies.get(i);
+        enemy.update(this);
+        i = i + 1;
+    }
+}
 
     public List<Tile> getTiles() {
         List<Tile> result = tiles;
@@ -181,6 +329,16 @@ public class SimpleLevel {
         int value = worldHeight;
         return value;
     }
+    public List<MessageBox> getMessageBoxes() {
+    List<MessageBox> result = messageBoxes;
+    return result;
+}
+public List<WalkingEnemy> getEnemies() {
+    List<WalkingEnemy> result = enemies;
+    return result;
+}
+
+
 
     // used when you lose all hearts and we want a fresh run
     public void resetCheckpoints() {

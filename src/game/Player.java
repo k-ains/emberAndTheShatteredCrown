@@ -4,13 +4,23 @@ import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
+
 
 public class Player extends GameObject {
 
-    private static final int MOVE_SPEED = 2;
+    private static final int MOVE_SPEED = 3;
     private static final int JUMP_STRENGTH = -20;  
     private static final int GRAVITY = 1;
-    private static final int MAX_FALL_SPEED = 5;
+    private static final int MAX_FALL_SPEED = 9;
+
+    //for player animation
+    private static final int STATE_IDLE = 0;
+    private static final int STATE_WALK = 1;
+    private static final int STATE_JUMP = 2;
+    private static final int STATE_FALL = 3;
+
 
     private int velX;
     private int velY;
@@ -28,8 +38,17 @@ public class Player extends GameObject {
     private int maxHearts;
     private int hearts;
 
-    private int coins;
+   private int coins;
     private boolean dead;
+
+    private String popupMessage;
+    private int popupTimer;
+
+        private int animState;
+    private int animFrame;
+    private int animTimer;
+    private boolean facingRight; //because sprite only has 1 direction
+
 
     public Player(int x, int y) {
         super(x, y, 32, 32);
@@ -50,8 +69,19 @@ public class Player extends GameObject {
         maxHearts = 3;
         hearts = maxHearts;
         coins = 0;
-
         dead = false;
+
+        facingRight = true;
+
+
+        popupMessage = "";
+        popupTimer = 0;
+
+                animState = STATE_IDLE;
+        animFrame = 0;
+        animTimer = 0;
+
+
     }
 
     @Override
@@ -66,6 +96,14 @@ public class Player extends GameObject {
                     velX = 0;
                 }
             }
+            if (velX < 0) {
+    facingRight = false;
+} else {
+    if (velX > 0) {
+        facingRight = true;
+    }
+}
+
 
             if (jumpPressed && onGround) {
                 velY = JUMP_STRENGTH;
@@ -109,17 +147,49 @@ public class Player extends GameObject {
                     markDead();
                 }
             }
-            // collision with coins
-java.util.Iterator<Coin> coinIterator = level.getCoins().iterator();
-while (coinIterator.hasNext()) {
-    Coin coin = coinIterator.next();
-    Rectangle coinBounds = coin.getBounds();
+            // collision with enemies
+                java.util.List<WalkingEnemy> enemyList = level.getEnemies();
+                int enemyIndex = 0;
+                while (enemyIndex < enemyList.size()) {
+                    WalkingEnemy enemy = enemyList.get(enemyIndex);
+                    Rectangle enemyBounds = enemy.getBounds();
 
-    if (playerBounds.intersects(coinBounds)) {
-        coin.onPickup(this);
-        coinIterator.remove();
-    }
-}
+                    if (playerBounds.intersects(enemyBounds)) {
+                        markDead();
+                    }
+
+                    enemyIndex = enemyIndex + 1;
+                }
+
+            // collision with coins
+                java.util.Iterator<Coin> coinIterator = level.getCoins().iterator();
+                while (coinIterator.hasNext()) {
+                    Coin coin = coinIterator.next();
+                    Rectangle coinBounds = coin.getBounds();
+
+                    if (playerBounds.intersects(coinBounds)) {
+                        coin.onPickup(this);
+                        coinIterator.remove();
+                    }
+                }
+            // collision with message boxes (bonk from below)
+            java.util.List<MessageBox> boxes = level.getMessageBoxes();
+            int j = 0;
+            while (j < boxes.size()) {
+                MessageBox box = boxes.get(j);
+                Rectangle boxBounds = box.getBounds();
+
+                if (playerBounds.intersects(boxBounds) && velY < 0) {
+                    int playerTop = playerBounds.y;
+                    int boxCenterY = boxBounds.y + boxBounds.height / 2;
+
+                    if (playerTop > boxCenterY) {
+                        showMessage(box.getMessage());
+                    }
+                }
+
+                        j = j + 1;
+                    }
 
 
             // collision with checkpoint flags
@@ -129,14 +199,146 @@ while (coinIterator.hasNext()) {
                     flag.activate(this);
                 }
             }
+                   // ----- ANIMATION STATE -----
+            int newState = animState;
+
+            if (!onGround) {
+                if (velY < 0) {
+                    newState = STATE_JUMP;
+                } else {
+                    newState = STATE_FALL;
+                }
+            } else {
+                if (velX != 0) {
+                    newState = STATE_WALK;
+                } else {
+                    newState = STATE_IDLE;
+                }
+            }
+
+            if (newState != animState) {
+                animState = newState;
+                animFrame = 0;
+                animTimer = 0;
+            }
+
+            // ----- ANIMATION FRAME -----
+            int frameSpeed = 10; // higher = slower animation
+            int framesCount = 1;
+
+            if (animState == STATE_IDLE && Assets.playerIdle != null) {
+                framesCount = Assets.playerIdle.length;
+            } else {
+                if (animState == STATE_WALK && Assets.playerWalk != null) {
+                    framesCount = Assets.playerWalk.length;
+                } else {
+                    framesCount = 1;
+                }
+            }
+
+            if (framesCount <= 0) {
+                framesCount = 1;
+            }
+
+            animTimer = animTimer + 1;
+
+            if (animTimer >= frameSpeed) {
+                animTimer = 0;
+                animFrame = animFrame + 1;
+                if (animFrame >= framesCount) {
+                    animFrame = 0;
+                }
+            }
+
         }
     }
 
-    @Override
-    public void draw(Graphics g) {
-        g.setColor(Color.ORANGE);
+    public void showMessage(String text) {
+    popupMessage = text;
+    popupTimer = 180; // about 3 seconds at 60 FPS
+}
+
+public void updateMessageTimer() {
+    if (popupTimer > 0) {
+        popupTimer = popupTimer - 1;
+        if (popupTimer == 0) {
+            popupMessage = "";
+        }
+    }
+}
+
+public String getPopupMessage() {
+    String value = popupMessage;
+    return value;
+}
+
+public int getPopupTimer() {
+    int value = popupTimer;
+    return value;
+}
+
+
+   @Override
+public void draw(Graphics g) {
+    BufferedImage img = null;
+
+    if (animState == STATE_IDLE && Assets.playerIdle != null) {
+        if (Assets.playerIdle.length > 0) {
+            int index = animFrame;
+            if (index < 0) {
+                index = 0;
+            } else {
+                if (index >= Assets.playerIdle.length) {
+                index = Assets.playerIdle.length - 1;
+                }
+            }
+            img = Assets.playerIdle[index];
+        }
+    } else {
+        if (animState == STATE_WALK && Assets.playerWalk != null) {
+            if (Assets.playerWalk.length > 0) {
+                int index = animFrame;
+                if (index < 0) {
+                    index = 0;
+                } else {
+                    if (index >= Assets.playerWalk.length) {
+                        index = Assets.playerWalk.length - 1;
+                    }
+                }
+                img = Assets.playerWalk[index];
+            }
+        } else {
+            if (animState == STATE_JUMP && Assets.playerJump != null) {
+                img = Assets.playerJump;
+            } else {
+                if (animState == STATE_FALL && Assets.playerFall != null) {
+                    img = Assets.playerFall;
+                }
+            }
+        }
+    }
+
+    if (img == null) {
+        img = Assets.playerFallback;
+    }
+
+    if (img != null) {
+        Graphics2D g2 = (Graphics2D) g;
+
+        if (facingRight) {
+            g2.drawImage(img, x, y, width, height, null);
+        } else {
+            // flip horizontally by drawing with negative width
+            g2.drawImage(img, x + width, y, -width, height, null);
+        }
+    } else {
+        g.setColor(java.awt.Color.ORANGE);
         g.fillRect(x, y, width, height);
     }
+}
+
+
+
 
     public void setCheckpoint(int x, int y) {
         respawnX = x;
