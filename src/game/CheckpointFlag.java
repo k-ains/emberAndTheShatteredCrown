@@ -2,90 +2,63 @@ package src.game;
 
 import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.Rectangle;
 
 public class CheckpointFlag extends GameObject {
 
-    private boolean active;
+    private boolean activated;
 
-   public CheckpointFlag(int x, int y) {
-    super(x, y, 32, 48);
-    active = false;
+    public CheckpointFlag(int x, int y) {
+        super(x, y, 32, 48);
+        activated = false;
+    }
+
+public void activate(Player p) {
+    if (!activated) {
+        activated = true;
+
+        // platform surface is the bottom of the flag
+        int platformY = y + height;
+
+        // stand on top of the platform
+        int respawnY = platformY - p.getHeight();
+
+        // center player on the flag so you don't spawn at an edge
+        int respawnX = x + width / 2 - p.getWidth() / 2;
+
+        p.setCheckpoint(respawnX, respawnY);
+        p.showMessage("Checkpoint!");
+    }
 }
 
+    public void reset() {
+        activated = false;
+    }
+
+    public Rectangle getBounds() {
+        Rectangle r = new Rectangle(x, y, width, height);
+        return r;
+    }
 
     @Override
     public void update(SimpleLevel level) { }
 
-   @Override
-public void draw(Graphics g) {
-    java.awt.image.BufferedImage img;
-
-    if (active && Assets.flagRaised != null) {
-        img = Assets.flagRaised;
-    } else {
-        if (!active && Assets.flagDown != null) {
-            img = Assets.flagDown;
+    @Override
+    public void draw(Graphics g) {
+        if (activated) {
+            if (Assets.flagRaised != null) {
+                g.drawImage(Assets.flagRaised, x, y, width, height, null);
+            } else {
+                g.setColor(Color.GREEN);
+                g.fillRect(x, y, width, height);
+            }
         } else {
-            img = null;
+            if (Assets.flagDown != null) {
+                g.drawImage(Assets.flagDown, x, y, width, height, null);
+            } else {
+                g.setColor(Color.WHITE);
+                g.fillRect(x, y, width, height);
+            }
         }
-    }
-
-    if (img != null) {
-        g.drawImage(img, x, y, width, height, null);
-    } else {
-        // fallback: old simple drawing
-        java.awt.Color poleColor;
-        java.awt.Color flagColor;
-
-        if (active) {
-            poleColor = java.awt.Color.WHITE;
-            flagColor = java.awt.Color.GREEN;
-        } else {
-            poleColor = java.awt.Color.DARK_GRAY;
-            flagColor = java.awt.Color.RED;
-        }
-
-        g.setColor(poleColor);
-        g.fillRect(x + width / 2 - 2, y + 5, 4, height - 10);
-
-        int flagTopX = x + width / 2;
-        int flagTopY = y + 5;
-
-        int[] xs = new int[3];
-        int[] ys = new int[3];
-
-        xs[0] = flagTopX;
-        ys[0] = flagTopY;
-
-        xs[1] = flagTopX + 16;
-        ys[1] = flagTopY + 8;
-
-        xs[2] = flagTopX;
-        ys[2] = flagTopY + 16;
-
-        g.setColor(flagColor);
-        g.fillPolygon(xs, ys, 3);
-    }
-}
-
-
-    public void activate(Player player) {
-        if (!active) {
-            active = true;
-
-            int spawnX = x + width / 2 - player.getWidth() / 2;
-            int spawnY = y - player.getHeight();
-
-            player.setCheckpoint(spawnX, spawnY);
-        }
-    }
-
-    public void reset() {
-        active = false;
-    }
-
-    public boolean isActive() {
-        boolean value = active;
-        return value;
     }
 }
