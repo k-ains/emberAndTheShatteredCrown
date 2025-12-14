@@ -51,10 +51,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             m = m + 1;
         }
         //for debugging only
-        gameMode = MODE_BEACH;
-        level = new Beach();
-        // gameMode = MODE_TUTORIAL;
-        // level = new Tutorial();
+        // gameMode = MODE_BEACH;
+        // level = new Beach();
+        gameMode = MODE_TUTORIAL;
+        level = new Tutorial();
 
         int startX = level.getSpawnX();
         int startY = level.getSpawnY();
