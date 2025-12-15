@@ -33,29 +33,13 @@ public class Candy extends SimpleLevel {
         int maxHorizontalShift = 200;
 
         int previousX = (minXAllowed + maxXAllowed) / 2;
-        int startY = floorY - 120;
-
-        int lastPlatformX = previousX;
+        int startY = floorY - 120;        int lastPlatformX = previousX;
         int lastPlatformY = startY;
 
-        // =========================================================
-        // INTRO SEQUENCE (tutorial messages for candy level)
-        // =========================================================
-        int p0X = previousX;
-        addNormalPlatformWide(p0X, startY, tilesWide);
-        messageBoxes.add(new MessageBox(p0X + 4 * TILE, startY - 70, true, "Candy Land: Watch for floating ghosts!"));
-        
-        int p1Y = startY - gap;
-        int p1X = pickPlatformX(p0X, minXAllowed, maxXAllowed);
-        addNormalPlatformWide(p1X, p1Y, tilesWide);
-        messageBoxes.add(new MessageBox(p1X + 4 * TILE, p1Y - 70, true, "Ghosts phase through platforms!"));
-
-        previousX = p1X;
-        int currentY = p1Y;
-
-        int i = 2;
+        int i = 0;
         while (i < numberOfPlatforms) {
-            int platformY = currentY - gap;
+
+            int platformY = startY - gap * i;
 
             int platformX = previousX;
             boolean valid = false;
@@ -82,26 +66,79 @@ public class Candy extends SimpleLevel {
             boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
             boolean isLastPlatform = (i == numberOfPlatforms - 1);
 
-            // ===============================
+            // Special handling for tutorial platforms (1-6)
+            boolean forceBreakable = false;
+            boolean preventBreakable = false;
+            boolean preventSpike = false;
+            boolean preventEnemy = false;
+            boolean forceEnemy = false;
+            boolean forceSpin = false;
+            boolean preventSpin = false;
+            boolean addMessageBox = false;
+            String messageText = "";
+            
+            if (i == 1) {
+                // Platform 1: Safe with message box
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                preventSpin = true;
+                addMessageBox = true;
+                messageText = "Careful! Chocolate blocks break when you land on them!";
+            } else if (i == 2) {
+                // Platform 2: Has breakable tile
+                forceBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                preventSpin = true;
+            } else if (i == 3) {
+                // Platform 3: Safe with message box
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                preventSpin = true;
+                addMessageBox = true;
+                messageText = "Warning: Spinning hazards will launch you!";
+            } else if (i == 4) {
+                // Platform 4: Spinning hazard (override checkpoint)
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                forceSpin = true;
+            } else if (i == 5) {
+                // Platform 5: Safe platform with message box
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                preventSpin = true;
+                addMessageBox = true;
+                messageText = "Wasps follow you and push you off the edge!";
+            } else if (i == 6) {
+                // Platform 6: Wasp enemy
+                preventBreakable = true;
+                preventSpike = true;
+                preventSpin = true;
+                forceEnemy = true;
+            }
+
+            boolean hasSpike = false;
+            boolean hasBreakable = false;            // ===============================
             // PLATFORM (with random breakable tiles)
             // ===============================
-            boolean makeBreakable = !isCheckpointIndex && !isLastPlatform && i >= 2;
-            int breakableCount = makeBreakable ? 2 : 0; // always 2 breakable tiles
-            
             int t = 0;
             while (t < tilesWide) {
-                boolean isBreakable = false;
-                
-                if (makeBreakable && breakableCount > 0 && t >= 2 && t < tilesWide - 2) {
-                    if (random.nextInt(100) < 60) {
-                        isBreakable = true;
-                        breakableCount = breakableCount - 1;
-                    }
-                }
-                
                 Tile tile;
                 
-                if (isBreakable) {
+                // Check if this platform should have breakable tiles
+                boolean shouldBreak = false;
+                if (forceBreakable && t == tilesWide / 2) {
+                    // Force breakable on specific platform (middle tile)
+                    shouldBreak = true;
+                } else if (!preventBreakable && !isCheckpointIndex && i > 6 && random.nextInt(100) < 40) {
+                    // Random breakable for platforms after tutorial
+                    shouldBreak = true;
+                }
+                  if (shouldBreak) {
                     BufferedImage[] breakSprites = new BufferedImage[2];
                     breakSprites[0] = Assets.candyBreakable;
                     breakSprites[1] = Assets.candyBreakable; // same for now
@@ -112,6 +149,7 @@ public class Candy extends SimpleLevel {
                         TILE,
                         breakSprites
                     );
+                    hasBreakable = true;
                 } else {
                     tile = new Tile(
                         platformX + t * TILE,
@@ -132,12 +170,10 @@ public class Candy extends SimpleLevel {
 
                 tiles.add(tile);
                 t = t + 1;
-            }
-
-            // ===============================
+            }            // ===============================
             // CHECKPOINT
             // ===============================
-            if (isCheckpointIndex) {
+            if (isCheckpointIndex && i != 4) {
                 int flagW = 32;
                 int flagH = 48;
 
@@ -150,9 +186,7 @@ public class Candy extends SimpleLevel {
             // ===============================
             // SPIKES (NORMAL PLATFORMS ONLY)
             // ===============================
-            boolean hasSpike = false;
-
-            if (!isCheckpointIndex && !isLastPlatform && i % 3 == 2) {
+            if (!preventSpike && !isCheckpointIndex && !isLastPlatform && i > 6 && i % 3 == 2) {
 
                 int spikeW = 32;
                 int spikeH = 28;
@@ -194,12 +228,19 @@ public class Candy extends SimpleLevel {
                 int cx = platformX + platformWidth / 2 - coinSize / 2;
                 int cy = platformY - coinSize - 4;
                 coins.add(new Coin(cx, cy, 1));
-            }
-
-            // ===============================
+            }            // ===============================
             // SPINNING HAZARDS
             // ===============================
-            boolean canHaveSpin = !isCheckpointIndex && !hasSpike && !isLastPlatform && i % 5 == 3;
+            boolean canHaveSpin = false;
+            
+            if (forceSpin) {
+                // Force spinning hazard on platform 4
+                canHaveSpin = true;
+            } else if (!preventSpin && i > 6) {
+                // Random spinning hazards after tutorial
+                canHaveSpin = !isCheckpointIndex && !hasSpike && !isLastPlatform && i % 5 == 3;
+            }
+            
             if (canHaveSpin) {
                 int spinSize = 40;
                 int spinX = platformX + platformWidth / 2 - spinSize / 2;
@@ -214,25 +255,37 @@ public class Candy extends SimpleLevel {
             // POP TILES (some platforms disappear/reappear)
             // ===============================
             boolean makePopTile = !isCheckpointIndex && !hasSpike && !isLastPlatform && i % 6 == 4;
-            
-            // ===============================
+              // ===============================
             // ENEMIES
             // ===============================
-            boolean canHaveEnemy =
-                !isCheckpointIndex &&
-                !hasSpike &&
-                !isLastPlatform &&
-                !canHaveSpin &&
-                i >= 3;
+            boolean canHaveEnemy = false;
+            
+            if (forceEnemy) {
+                // Force enemy on platform 6
+                canHaveEnemy = true;
+            } else if (!preventEnemy && i > 6) {
+                // Random enemies after tutorial
+                canHaveEnemy = !isCheckpointIndex &&
+                              !hasSpike &&
+                              !isLastPlatform &&
+                              !canHaveSpin &&
+                              i >= 7;
+            }
 
             if (canHaveEnemy) {
                 maybeAddGhostOnWide(platformX, platformY, platformWidth, i);
+            }
+            
+            // ===============================
+            // MESSAGE BOXES
+            // ===============================
+            if (addMessageBox && messageText.length() > 0) {
+                messageBoxes.add(new MessageBox(platformX + 4 * TILE, platformY - 3 * TILE, true, messageText));
             }
 
             previousX = platformX;
             lastPlatformX = platformX;
             lastPlatformY = platformY;
-            currentY = platformY;
             i = i + 1;
         }
 
@@ -323,9 +376,7 @@ public class Candy extends SimpleLevel {
             tiles.add(t);
             i = i + 1;
         }
-    }
-
-    private void maybeAddGhostOnWide(int platformX, int platformY, int platformWidthPx, int index) {
+    }    private void maybeAddGhostOnWide(int platformX, int platformY, int platformWidthPx, int index) {
         if (enemies == null) {
             return;
         }
@@ -357,9 +408,7 @@ public class Candy extends SimpleLevel {
             enemyX = platformX + platformWidthPx / 2 - enemyW / 2;
         } else if (lane == 2) {
             enemyX = rightBound;
-        }
-
-        int enemyY = platformY - enemyH;
-        enemies.add(new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2, Assets.waspIdle));
+        }        int enemyY = platformY - enemyH;
+        enemies.add(new Wasp(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2));
     }
 }

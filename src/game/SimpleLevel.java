@@ -175,14 +175,16 @@ public abstract class SimpleLevel {
         }
 
     }
-    
-    public void updateWithPlayer(Player player) {
+      public void updateWithPlayer(Player player) {
         int i = 0;
         while (i < enemies.size()) {
             WalkingEnemy enemy = enemies.get(i);
             if (enemy instanceof GhostEnemy) {
                 GhostEnemy ghost = (GhostEnemy) enemy;
                 ghost.setPlayerPosition(player.getX(), player.getY());
+            } else if (enemy instanceof Wasp) {
+                Wasp wasp = (Wasp) enemy;
+                wasp.setPlayerPosition(player.getX(), player.getY());
             }
             enemy.update(this);
             i = i + 1;

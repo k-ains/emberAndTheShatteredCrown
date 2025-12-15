@@ -4,7 +4,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-public class GhostEnemy extends WalkingEnemy {
+public class Wasp extends WalkingEnemy {
 
     private int leftBound;
     private int rightBound;
@@ -18,8 +18,8 @@ public class GhostEnemy extends WalkingEnemy {
     private boolean facingRight;
     
     private BufferedImage[] sprites;
-      // Player following behavior
-    private boolean followPlayer = false;
+    
+    // Player following behavior for wasps
     private static final int MAX_FOLLOW_DISTANCE = 360; // 3 platforms * ~120px gap
     private int playerX = -1;
     private int playerY = -1;
@@ -27,20 +27,7 @@ public class GhostEnemy extends WalkingEnemy {
     public void setPlayerPosition(int px, int py) {
         this.playerX = px;
         this.playerY = py;
-    }
-
-    public GhostEnemy(int x, int y, int w, int h,
-                      int leftBound, int rightBound, int speed) {
-        this(x, y, w, h, leftBound, rightBound, speed, Assets.ghostWalk);
-    }
-    
-    public void setFollowPlayer(boolean follow) {
-        this.followPlayer = follow;
-    }
-    
-    public GhostEnemy(int x, int y, int w, int h,
-                      int leftBound, int rightBound, int speed,
-                      BufferedImage[] customSprites) {
+    }    public Wasp(int x, int y, int w, int h, int leftBound, int rightBound, int speed) {
         super(x, y, w, h, leftBound, rightBound, speed);
 
         this.leftBound = leftBound;
@@ -49,45 +36,43 @@ public class GhostEnemy extends WalkingEnemy {
         this.direction = 1;
 
         this.baseY = y;
-        this.floatTimer = 0;
-
-        this.animFrame = 0;
+        this.floatTimer = 0;        this.animFrame = 0;
         this.animTimer = 0;
         this.facingRight = true;
         
-        this.sprites = customSprites != null ? customSprites : Assets.ghostWalk;
-    }    
-      @Override
+        this.sprites = Assets.waspIdle != null ? Assets.waspIdle : Assets.ghostWalk;
+    }
+
+    @Override
     public void update(SimpleLevel level) {
-        // Player following behavior
-        if (followPlayer && playerX >= 0 && playerY >= 0) {
+        // Wasps always follow the player aggressively
+        if (playerX >= 0 && playerY >= 0) {
             // Calculate distance to player
             int playerCenterX = playerX + 16; // assuming player is 32px wide
             int playerCenterY = playerY + 16; // assuming player is 32px tall
-            int ghostCenterX = x + width / 2;
-            int ghostCenterY = y + height / 2;
+            int waspCenterX = x + width / 2;
+            int waspCenterY = y + height / 2;
             
-            int dx = playerCenterX - ghostCenterX;
-            int dy = playerCenterY - ghostCenterY;
+            int dx = playerCenterX - waspCenterX;
+            int dy = playerCenterY - waspCenterY;
             double distance = Math.sqrt(dx * dx + dy * dy);
-            
-            // Follow player if within 3 platforms distance
-            if (distance < MAX_FOLLOW_DISTANCE && distance > 5) {
-                // Normalize and move towards player more aggressively
-                double moveX = (dx / distance) * speed * 1.5; // 1.5x faster when following
-                double moveY = (dy / distance) * speed * 0.8; // better vertical movement
+              // Follow player if within 3 platforms distance
+            if (distance < MAX_FOLLOW_DISTANCE && distance > 10) {
+                // Normalize and move towards player (0.75x speed = effective 1.5 with base speed 2)
+                double moveX = (dx / distance) * speed * 0.75; // 0.75x horizontal
+                double moveY = (dy / distance) * speed * 0.4; // Slower vertical movement
                 
                 x += (int) moveX;
                 y += (int) moveY;
                 
                 facingRight = dx > 0;
                 
-                // No bounds checking when following - can push player off platforms
-            } else if (distance <= 5) {
-                // Very close to player - push behavior
-                // Continue moving in the same direction to push player
+                // No bounds checking - wasps can chase anywhere
+            } else if (distance <= 10) {
+                // Close to player - gentle push behavior
+                // Move slowly to push player but not too aggressively
                 if (dx != 0) {
-                    x += (int) ((dx / Math.abs(dx)) * speed * 1.2);
+                    x += (int) ((dx / Math.abs(dx)) * speed * 0.6);
                 }
                 facingRight = dx > 0;
             } else {
@@ -100,7 +85,7 @@ public class GhostEnemy extends WalkingEnemy {
 
         // animation
         animTimer++;
-        if (animTimer >= 14) {
+        if (animTimer >= 10) { // Faster animation for wasps
             animTimer = 0;
             animFrame++;
 
@@ -124,9 +109,9 @@ public class GhostEnemy extends WalkingEnemy {
 
         facingRight = direction > 0;
 
-        // vertical floating motion
+        // vertical floating motion (faster buzz for wasps)
         floatTimer++;
-        y = baseY + (int)(Math.sin(floatTimer * 0.05) * 6);
+        y = baseY + (int)(Math.sin(floatTimer * 0.08) * 8); // Faster and bigger floating motion
     }
 
     @Override

@@ -75,15 +75,24 @@ public class Player extends GameObject {
     
     private int hurtShakeTimer;
     private static final int HURT_SHAKE_DURATION = 20;
-    
-    private int knockbackShakeTimer;
+      private int knockbackShakeTimer;
     private static final int KNOCKBACK_SHAKE_DURATION = 15;
+      private int waspPushCooldown;
+    private static final int WASP_PUSH_COOLDOWN_DURATION = 30;
+    
+    // Knockback from wasps - temporarily overrides player input
+    private int knockbackVelX;
+    private int knockbackVelY;
+    private int knockbackTimer;
 
     public Player(int x, int y) {
         super(x, y, 32, 32);
 
         velX = 0;
         velY = 0;
+        knockbackVelX = 0;
+        knockbackVelY = 0;
+        knockbackTimer = 0;
 
         leftPressed = false;
         rightPressed = false;
@@ -111,31 +120,38 @@ public class Player extends GameObject {
 
         animState = STATE_IDLE;
         animFrame = 0;
-        animTimer = 0;
-
-        facingRight = true;
+        animTimer = 0;        facingRight = true;
         reachedGoal = false;
 
         climbing = false;
+        
+        waspPushCooldown = 0;
 
         touchingDoor = false;
         touchingDoorTarget = "";
 
         starsCollected = 0;
-    }
-
-    @Override
+    }    @Override
     public void update(SimpleLevel level) {
         if (!dead) {
 
             // -------- HORIZONTAL INPUT --------
-            if (leftPressed) {
-                velX = -MOVE_SPEED;
+            // If in knockback, use knockback velocity instead of player input
+            if (knockbackTimer > 0) {
+                velX = knockbackVelX;
+                knockbackTimer--;
+                if (knockbackTimer == 0) {
+                    knockbackVelX = 0;
+                }
             } else {
-                if (rightPressed) {
-                    velX = MOVE_SPEED;
+                if (leftPressed) {
+                    velX = -MOVE_SPEED;
                 } else {
-                    velX = 0;
+                    if (rightPressed) {
+                        velX = MOVE_SPEED;
+                    } else {
+                        velX = 0;
+                    }
                 }
             }
 
@@ -177,11 +193,13 @@ public class Player extends GameObject {
 
             climbing = wantsClimb;
 
-            boolean jumpInput = jumpPressed || (upPressed && !climbing);
-
-            // -------- JUMP / CLIMB / GRAVITY --------
+            boolean jumpInput = jumpPressed || (upPressed && !climbing);            // -------- JUMP / CLIMB / GRAVITY --------
             if (!climbing) {
-                if (jumpInput && onGround) {
+                // Apply knockback vertical velocity if active
+                if (knockbackTimer > 0 && knockbackVelY != 0) {
+                    velY = knockbackVelY;
+                    knockbackVelY = 0; // Only apply once, then let gravity take over
+                } else if (jumpInput && onGround) {
                     velY = JUMP_STRENGTH;
                     onGround = false;
                     Sound.play("/src/assets/sounds/jump.wav");
@@ -406,16 +424,39 @@ public class Player extends GameObject {
                     Sound.play("/src/assets/sounds/jump.wav");
                 }
                 spinIndex = spinIndex + 1;
-            }
-
-            // -------- ENEMIES --------
+            }            // -------- ENEMIES --------
             java.util.List<WalkingEnemy> enemyList = level.getEnemies();
             int eIndex = 0;
             while (eIndex < enemyList.size()) {
                 WalkingEnemy enemy = enemyList.get(eIndex);
                 if (playerBounds.intersects(enemy.getBounds())) {
-                    markDead();
-                    Sound.play("/src/assets/sounds/ouch.wav");
+                    // Wasps don't kill the player, they just push them
+                    if (enemy instanceof Wasp) {
+                        // Only push if cooldown is expired
+                        if (waspPushCooldown <= 0) {
+                            // Calculate push direction from wasp to player
+                            int waspCenterX = enemy.getX() + enemy.getWidth() / 2;
+                            int playerCenterX = x + width / 2;
+                            int pushDirection = playerCenterX > waspCenterX ? 1 : -1;
+                            
+                            // Apply VERY strong knockback (much stronger than player movement)
+                            knockbackVelX = pushDirection * 15; // 15 pixels/frame, 5x normal movement
+                            knockbackVelY = -8; // Strong upward push
+                            knockbackTimer = 12; // 12 frames of knockback control
+                            
+                            // Force player off ground so they can be pushed
+                            onGround = false;
+                            
+                            // Trigger knockback shake
+                            triggerKnockbackShake();
+                            
+                            // Set cooldown to prevent rapid re-pushing
+                            waspPushCooldown = WASP_PUSH_COOLDOWN_DURATION;
+                        }
+                    } else {
+                        markDead();
+                        Sound.play("/src/assets/sounds/ouch.wav");
+                    }
                 }
                 eIndex = eIndex + 1;
             }
@@ -600,9 +641,7 @@ public class Player extends GameObject {
     public void showMessage(String text) {
         popupMessage = text;
         popupTimer = 180;
-    }
-
-    public void updateMessageTimer() {
+    }    public void updateMessageTimer() {
         if (popupTimer > 0) {
             popupTimer = popupTimer - 1;
             if (popupTimer == 0) {
@@ -616,6 +655,10 @@ public class Player extends GameObject {
         
         if (knockbackShakeTimer > 0) {
             knockbackShakeTimer = knockbackShakeTimer - 1;
+        }
+        
+        if (waspPushCooldown > 0) {
+            waspPushCooldown = waspPushCooldown - 1;
         }
     }
     

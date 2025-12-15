@@ -154,15 +154,13 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             if (cameraY > maxCam) {
                 cameraY = maxCam;
             }
-        }
-
-
-        // FALLING DEATH:
-        // Player dies when falling below the world bottom, not just off-screen
+        }        // FALLING DEATH:
+        // Player dies when falling off-screen (camera bottom + small buffer)
         if (gameMode != MODE_TOWN) {
-            int worldBottom = level.getWorldHeight() + 200;
-            if (player.getY() > worldBottom) {
+            int screenBottom = cameraY + HEIGHT + 100; // 100px buffer below screen
+            if (player.getY() > screenBottom) {
                 player.markDead();
+                Sound.play("/src/assets/sounds/ouch.wav");
             }
         }
 
@@ -323,11 +321,9 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
         if (gameMode == MODE_TUTORIAL) {
             g.drawString("Current Platforms: " + currentPlatformCount, 10, textY);
             g.drawString("Best Platforms: " + bestPlatformCount, 10, textY + 18);
-        }
-
-        String msg = player.getPopupMessage();
+        }        String msg = player.getPopupMessage();
         if (player.getPopupTimer() > 0 && msg != null && msg.length() > 0) {
-            g.setColor(java.awt.Color.WHITE);
+            g.setColor(java.awt.Color.BLACK);
             g.drawString(msg, 10, HEIGHT - 20);
         }
     }

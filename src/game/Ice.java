@@ -67,11 +67,61 @@ public class Ice extends SimpleLevel {
                     valid = true;
                 }
             }            boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
-            boolean isLastPlatform = (i == numberOfPlatforms - 1);            boolean makeSlope =
-                !isCheckpointIndex &&
-                !isLastPlatform &&
-                i >= 3 &&
-                i % 4 == 2;   // predictable tutorial spacing
+            boolean isLastPlatform = (i == numberOfPlatforms - 1);
+
+            // Special handling for tutorial platforms (0-5)
+            boolean makeSlope = false;
+            boolean forceBreakable = false;
+            boolean preventBreakable = false;
+            boolean preventSpike = false;
+            boolean preventEnemy = false;
+            boolean forceEnemy = false;
+            boolean addMessageBox = false;
+            String messageText = "";
+            
+            if (i == 1) {
+                // Platform 1: Safe with message box
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                addMessageBox = true;
+                messageText = "Careful! Some ice tiles break when you land on them!";
+            } else if (i == 2) {
+                // Platform 2: Has breakable tile
+                forceBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+            } else if (i == 3) {
+                // Platform 3: Safe with message box
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                addMessageBox = true;
+                messageText = "Next: Slopes launch you! Hold direction to control.";
+            } else if (i == 4) {
+                // Platform 4: Slope (override checkpoint)
+                makeSlope = true;
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;            } else if (i == 5) {
+                // Platform 5: Safe platform with message box warning about ghost
+                preventBreakable = true;
+                preventSpike = true;
+                preventEnemy = true;
+                addMessageBox = true;
+                messageText = "Warning: Ghosts ahead! They follow you!";
+            } else if (i == 6) {
+                // Platform 6: Ghost enemy
+                preventBreakable = true;
+                preventSpike = true;
+                forceEnemy = true;
+            } else if (i > 6) {
+                // Random pattern for platforms after 6
+                makeSlope = !isCheckpointIndex &&
+                           !isLastPlatform &&
+                           i >= 7 &&
+                           i % 4 == 2;
+            }
 
             boolean hasSpike = false;
             boolean hasBreakable = false;
@@ -86,12 +136,23 @@ public class Ice extends SimpleLevel {
                 SlopeTile slope = new SlopeTile(slopeX, platformY, 32, 32, left);
                 slope.setSprite(left ? Assets.iceSlopeLeft : Assets.iceSlopeRight);
                 slope.makeleft(left);
-                tiles.add(slope);
-            } else {
+                tiles.add(slope);            } else {
                 int t = 0;
-                while (t < tilesWide) {                    Tile tile;
+                while (t < tilesWide) {
 
-                    if (!isCheckpointIndex && !hasSpike && random.nextInt(100) < 20) {
+                    Tile tile;
+
+                    // Check if this platform should have breakable tiles
+                    boolean shouldBreak = false;
+                    if (forceBreakable && t == tilesWide / 2) {
+                        // Force breakable on specific platform (middle tile)
+                        shouldBreak = true;
+                    } else if (!preventBreakable && !isCheckpointIndex && !hasSpike && i > 6 && random.nextInt(100) < 20) {
+                        // Random breakable for platforms after tutorial
+                        shouldBreak = true;
+                    }
+
+                    if (shouldBreak) {
                         BufferedImage[] breakableSprites = new BufferedImage[] {
                             Assets.iceFloorBreakable[0],
                             Assets.iceFloorBreakable[1]
@@ -132,7 +193,7 @@ public class Ice extends SimpleLevel {
             }            // ===============================
             // CHECKPOINT
             // ===============================
-            if (isCheckpointIndex) {
+            if (isCheckpointIndex && i != 4) {
                 int flagW = 32;
                 int flagH = 48;
 
@@ -143,7 +204,7 @@ public class Ice extends SimpleLevel {
             }            // ===============================
             // SPIKES (NORMAL PLATFORMS ONLY)
             // ===============================
-            if (!makeSlope && !isCheckpointIndex && !isLastPlatform && i % 3 == 2) {
+            if (!preventSpike && !makeSlope && !isCheckpointIndex && !isLastPlatform && i > 6 && i % 3 == 2) {
 
                 int spikeW = 32;
                 int spikeH = 28;
@@ -217,14 +278,30 @@ public class Ice extends SimpleLevel {
             }            // ===============================
             // ENEMIES
             // ===============================
-            boolean canHaveEnemy =
-                !isCheckpointIndex &&
-                !hasSpike &&
-                !makeSlope &&
-                !isLastPlatform &&
-                i >= 5 &&
-                i % 4 == 1;            if (canHaveEnemy) {
+            boolean canHaveEnemy = false;
+            
+            if (forceEnemy) {
+                // Force enemy on platform 6
+                canHaveEnemy = true;
+            } else if (!preventEnemy && i > 6) {
+                // Random enemies after tutorial
+                canHaveEnemy = !isCheckpointIndex &&
+                              !hasSpike &&
+                              !makeSlope &&
+                              !isLastPlatform &&
+                              i >= 7 &&
+                              i % 4 == 1;
+            }
+
+            if (canHaveEnemy) {
                 maybeAddGhostOnWide(platformX, platformY, platformWidth, i);
+            }
+            
+            // ===============================
+            // MESSAGE BOXES
+            // ===============================
+            if (addMessageBox && messageText.length() > 0) {
+                messageBoxes.add(new MessageBox(platformX + 4 * TILE, platformY - 3 * TILE, true, messageText));
             }
 
             previousX = platformX;
