@@ -69,6 +69,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         runMaxPlatformCount = 0;
         runBestY = player.getY();
         currentPlatformCount = 0;
+        Sound.playMusic("/src/assets/sounds/background.wav");
     }
 
     public void startGameLoop() {

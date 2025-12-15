@@ -12,8 +12,8 @@ public class WalkingEnemy extends GameObject {
     private int rightBound;
     private int direction; // -1 = left, 1 = right
     private int animFrame;
-private int animTimer;
-private boolean facingRight;
+    private int animTimer;
+    private boolean facingRight;
 
    public WalkingEnemy(int x, int y, int width, int height, int leftBound, int rightBound, int speed) {
     super(x, y, width, height);

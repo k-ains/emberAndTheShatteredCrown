@@ -72,6 +72,7 @@ public void update(SimpleLevel level) {
     }
         public void onPickup(Player player) {
         player.addCoins(value);
+        Sound.play("/src/assets/sounds/coin.wav");
     }
 
 

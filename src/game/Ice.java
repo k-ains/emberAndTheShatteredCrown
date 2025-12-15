@@ -1,8 +1,9 @@
 package src.game;
 
-public class Ice extends SimpleLevel {
+import java.util.List;
+import java.awt.image.BufferedImage;
 
-    
+public class Ice extends SimpleLevel {
 
     public Ice() {
         super();
@@ -12,7 +13,7 @@ public class Ice extends SimpleLevel {
     private void buildIce() {
 
         int gap = 120;
-        int numberOfPlatforms = 25;
+        int numberOfPlatforms = 40;
         int floorHeight = 60;
 
         worldHeight = GamePanel.HEIGHT + numberOfPlatforms * gap + floorHeight;
@@ -92,20 +93,40 @@ public class Ice extends SimpleLevel {
                 int t = 0;
                 while (t < tilesWide) {
 
-                    Tile tile = new Tile(
-                        platformX + t * TILE,
-                        platformY,
-                        TILE,
-                        TILE,
-                        true
-                    );
+                    Tile tile;
 
-                    if (t == 0) {
-                        tile.setSprite(Assets.iceFloorTopLeft);
-                    } else if (t == tilesWide - 1) {
-                        tile.setSprite(Assets.iceFloorTopRight);
+                    if (!isCheckpointIndex && !hasSpike && random.nextInt(100) < 20) {
+                        BufferedImage[] breakableSprites = new BufferedImage[] {
+                            Assets.iceFloorBreakable[0],
+                            Assets.iceFloorBreakable[1]
+                        };
+                        
+                        tile = new BreakableTile(
+                            platformX + t * TILE,
+                            platformY,
+                            TILE,
+                            TILE,
+                            breakableSprites
+                        ); 
                     } else {
-                        tile.setSprite(Assets.iceFloorTopMid);
+                    
+                        tile = new Tile(
+                            platformX + t * TILE,
+                            platformY,
+                            TILE,
+                            TILE,
+                            true
+                        );
+
+                        if (t == 0) {
+                            tile.setSprite(Assets.iceFloorTopLeft);
+                        } else if (t == tilesWide - 1) {
+                            tile.setSprite(Assets.iceFloorTopRight);
+                        } else {
+                            tile.setSprite(Assets.iceFloorTopMid);
+                        }
+
+                        
                     }
 
                     tiles.add(tile);
@@ -185,19 +206,7 @@ public class Ice extends SimpleLevel {
                 i % 4 == 1;
 
             if (canHaveEnemy) {
-                int ew = 40;
-                int eh = 32;
-
-                int ex = platformX + platformWidth / 2 - ew / 2;
-                int ey = platformY - eh;
-
-                int margin = 30;
-                enemies.add(new WalkingEnemy(
-                    ex, ey, ew, eh,
-                    platformX + margin,
-                    platformX + platformWidth - margin,
-                    2
-                ));
+                maybeAddGhostOnWide(platformX, platformY, platformWidth, i);
             }
 
             previousX = platformX;
@@ -205,6 +214,8 @@ public class Ice extends SimpleLevel {
             lastPlatformY = platformY;
             i = i + 1;
         }
+
+
 
         // ===============================
         // EXIT DOOR
@@ -220,4 +231,39 @@ public class Ice extends SimpleLevel {
             "TOWN"
         ));
     }
+
+    private void maybeAddGhostOnWide(int platformX, int platformY, int platformWidthPx, int index) {
+        if (enemies == null) {
+            return;
+        }
+        if (index < 2) {
+            return;
+        }
+
+
+        int enemyW = 48;
+        int enemyH = 32;
+
+        int margin = 32;
+
+        int leftBound = platformX + margin;
+        int rightBound = platformX + platformWidthPx - margin - enemyW;
+
+        if (rightBound <= leftBound) {
+            return;
+        }
+
+        int lane = random.nextInt(3);
+        int enemyX = leftBound;
+
+        if (lane == 1) {
+            enemyX = platformX + platformWidthPx / 2 - enemyW / 2;
+        } else if (lane == 2) {
+            enemyX = rightBound;
+        }
+
+        int enemyY = platformY - enemyH;
+        enemies.add(new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2));
+    }
+
 }

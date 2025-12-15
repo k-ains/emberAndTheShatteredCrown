@@ -120,6 +120,8 @@ public class Assets {
     public static BufferedImage coralSpike;
     public static BufferedImage seagrassSpike;
 
+
+
     // ---------- ICE LEVEL FLOOR / PLATFORMS ----------
     public static BufferedImage iceFloorTopLeft;
     public static BufferedImage iceFloorTopMid;
@@ -129,6 +131,12 @@ public class Assets {
     public static BufferedImage iceSpike;
 
     public static BufferedImage iceFloor;
+    public static BufferedImage[] iceFloorBreakable;
+
+
+    // ---------- ICE ENEMIES ----------
+    public static BufferedImage[] ghostWalk;
+    public static BufferedImage ghostFallback;
 
 
     public static void init() {
@@ -256,6 +264,11 @@ public class Assets {
         iceFloorTopMid      = tryLoad("assets/iceFloorTopMid.png",     "src/assets/iceFloorTopMid.png");
         iceFloorTopRight    = tryLoad("assets/iceFloorTopRight.png",     "src/assets/iceFloorTopRight.png");
         iceFloor            = tryLoad("assets/iceFloor.png",            "src/assets/iceFloor.png");
+        
+        iceFloorBreakable = new BufferedImage[2];
+        iceFloorBreakable[0]   = tryLoad("assets/iceFloorBreakable.png",    "src/assets/iceFloorBreakable.png");
+        iceFloorBreakable[1]   = tryLoad("assets/iceFloorBreaking.png",     "src/assets/iceFloorBreaking.png");
+        
         iceSlopeLeft        = tryLoad("assets/iceSlopeLeft.png",     "src/assets/iceSlopeLeft.png");
         iceSlopeRight       = tryLoad("assets/iceSlopeRight.png",     "src/assets/iceSlopeRight.png");
         iceSpike            = tryLoad("assets/iceSpike.png",     "src/assets/iceSpike.png");
@@ -283,6 +296,15 @@ public class Assets {
 
         if (crabWalk[0] != null) {
             crabFallback = crabWalk[0];
+        }
+
+        // ghost enemy frames
+        ghostWalk = new BufferedImage[2];
+        ghostWalk[0] = tryLoad("assets/ghost_float_0.png", "src/assets/ghost_float_0.png");
+        ghostWalk[1] = tryLoad("assets/ghost_float_1.png", "src/assets/ghost_float_1.png");
+        
+        if (crabWalk[0] != null) {
+            ghostFallback = ghostWalk[0];
         }
 
         // plant frames
