@@ -17,9 +17,17 @@ public class GhostEnemy extends WalkingEnemy {
     private int animFrame;
     private int animTimer;
     private boolean facingRight;
+    
+    private BufferedImage[] sprites;
 
     public GhostEnemy(int x, int y, int w, int h,
                       int leftBound, int rightBound, int speed) {
+        this(x, y, w, h, leftBound, rightBound, speed, Assets.ghostWalk);
+    }
+    
+    public GhostEnemy(int x, int y, int w, int h,
+                      int leftBound, int rightBound, int speed,
+                      BufferedImage[] customSprites) {
         super(x, y, w, h, leftBound, rightBound, speed);
 
         this.leftBound = leftBound;
@@ -33,6 +41,8 @@ public class GhostEnemy extends WalkingEnemy {
         this.animFrame = 0;
         this.animTimer = 0;
         this.facingRight = true;
+        
+        this.sprites = customSprites != null ? customSprites : Assets.ghostWalk;
     }
 
     @Override
@@ -60,8 +70,7 @@ public class GhostEnemy extends WalkingEnemy {
             animTimer = 0;
             animFrame++;
 
-            if (Assets.ghostWalk != null &&
-                animFrame >= Assets.ghostWalk.length) {
+            if (sprites != null && animFrame >= sprites.length) {
                 animFrame = 0;
             }
         }
@@ -71,8 +80,8 @@ public class GhostEnemy extends WalkingEnemy {
     public void draw(Graphics g) {
         BufferedImage img = null;
 
-        if (Assets.ghostWalk != null && Assets.ghostWalk.length > 0) {
-            img = Assets.ghostWalk[animFrame];
+        if (sprites != null && sprites.length > 0) {
+            img = sprites[animFrame];
         }
 
         if (img != null) {
