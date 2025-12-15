@@ -11,6 +11,7 @@ public class Assets {
     public static BufferedImage backgroundTown;
     public static BufferedImage backgroundBeach;
     public static BufferedImage backgroundIce;
+    public static BufferedImage backgroundCandy;
     public static BufferedImage background;
 
     // ---------- COMMON ----------
@@ -138,6 +139,10 @@ public class Assets {
         backgroundTown  = tryLoad("assets/bg_town.png",  "src/assets/bg_town.png");
         backgroundBeach = tryLoad("assets/bg_beach.png", "src/assets/bg_beach.png");
         backgroundIce = tryLoad("assets/bg_ice.png", "src/assets/bg_ice.png");
+        backgroundCandy = tryLoad("assets/bg_candy.jpg", "src/assets/bg_candy.jpg");
+        if (backgroundCandy == null) {
+            backgroundCandy = tryLoad("assets/bg_candy.png", "src/assets/bg_candy.png");
+        }
 
         // default background
         background = backgroundTower;

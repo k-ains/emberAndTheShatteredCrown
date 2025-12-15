@@ -55,8 +55,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         //level = new Beach();
         //gameMode = MODE_TUTORIAL;
         //level = new Tutorial();
-        gameMode = MODE_ICE;
-        level = new Ice();
+        // gameMode = MODE_ICE;
+        // level = new Ice();
+        gameMode = MODE_CANDY;
+        level = new Candy();
 
         int startX = level.getSpawnX();
         int startY = level.getSpawnY();
@@ -143,10 +145,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
 
         // FALLING DEATH:
-        // For tower style levels only. Beach still uses it, but camera MUST be correct.
+        // Player dies when falling below the world bottom, not just off-screen
         if (gameMode != MODE_TOWN) {
-            int visibleBottom = cameraY + HEIGHT + 40;
-            if (player.getY() > visibleBottom) {
+            int worldBottom = level.getWorldHeight() + 200;
+            if (player.getY() > worldBottom) {
                 player.markDead();
             }
         }
@@ -203,6 +205,8 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
     g.drawImage(Assets.backgroundBeach, 0, 0, WIDTH, HEIGHT, null);
 } else if (gameMode == MODE_ICE && Assets.backgroundIce != null) {
     g.drawImage(Assets.backgroundIce, 0, 0, WIDTH, HEIGHT, null);
+} else if (gameMode == MODE_CANDY && Assets.backgroundCandy != null) {
+    g.drawImage(Assets.backgroundCandy, 0, 0, WIDTH, HEIGHT, null);
 } else {
     if (Assets.backgroundTower != null) {
         g.drawImage(Assets.backgroundTower, 0, 0, WIDTH, HEIGHT, null);

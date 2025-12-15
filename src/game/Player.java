@@ -751,6 +751,11 @@ public class Player extends GameObject {
         return v;
     }
 
+    public int getVelY() {
+        int v = velY;
+        return v;
+    }
+
     public void increaseHeartsToMax5() {
         if (maxHearts < 5) {
             maxHearts = maxHearts + 1;
