@@ -72,6 +72,12 @@ public class Player extends GameObject {
     private String touchingDoorTarget;
 
     private int starsCollected;
+    
+    private int hurtShakeTimer;
+    private static final int HURT_SHAKE_DURATION = 20;
+    
+    private int knockbackShakeTimer;
+    private static final int KNOCKBACK_SHAKE_DURATION = 15;
 
     public Player(int x, int y) {
         super(x, y, 32, 32);
@@ -394,6 +400,9 @@ public class Player extends GameObject {
                     velY = -12;
                     onGround = false;
                     
+                    // Trigger knockback shake (no damage/overlay)
+                    triggerKnockbackShake();
+                    
                     Sound.play("/src/assets/sounds/jump.wav");
                 }
                 spinIndex = spinIndex + 1;
@@ -600,6 +609,22 @@ public class Player extends GameObject {
                 popupMessage = "";
             }
         }
+        
+        if (hurtShakeTimer > 0) {
+            hurtShakeTimer = hurtShakeTimer - 1;
+        }
+        
+        if (knockbackShakeTimer > 0) {
+            knockbackShakeTimer = knockbackShakeTimer - 1;
+        }
+    }
+    
+    public void triggerKnockbackShake() {
+        knockbackShakeTimer = KNOCKBACK_SHAKE_DURATION;
+    }
+    
+    public int getKnockbackShakeTimer() {
+        return knockbackShakeTimer;
     }
 
     public String getPopupMessage() {
@@ -634,6 +659,11 @@ public class Player extends GameObject {
 
     public void markDead() {
         dead = true;
+        hurtShakeTimer = HURT_SHAKE_DURATION;
+    }
+    
+    public int getHurtShakeTimer() {
+        return hurtShakeTimer;
     }
 
     public void setCheckpoint(int x, int y) {

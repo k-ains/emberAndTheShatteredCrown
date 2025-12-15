@@ -232,7 +232,17 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
 
 
         java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
-        g2.translate(0, -cameraY);
+        
+        // Screen shake effect (from hurt OR knockback)
+        int shakeX = 0;
+        int shakeY = 0;
+        if (player.getHurtShakeTimer() > 0 || player.getKnockbackShakeTimer() > 0) {
+            int shakeAmount = 4;
+            shakeX = (int)(Math.random() * shakeAmount * 2 - shakeAmount);
+            shakeY = (int)(Math.random() * shakeAmount * 2 - shakeAmount);
+        }
+        
+        g2.translate(shakeX, shakeY - cameraY);
 
         level.draw(g2);
         player.draw(g2);
@@ -243,7 +253,14 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
             g2.drawString("Best (" + bestPlatformCount + ")", 10, bestPlatformLineY - 4);
         }
 
-        g2.translate(0, cameraY);
+        g2.translate(-shakeX, cameraY - shakeY);
+
+        // Red overlay when hurt
+        if (player.getHurtShakeTimer() > 0) {
+            int alpha = (int)(100 * (player.getHurtShakeTimer() / 20.0));
+            g.setColor(new Color(255, 0, 0, alpha));
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+        }
 
         drawHUD(g);
 
