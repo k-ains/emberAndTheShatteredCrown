@@ -378,14 +378,23 @@ public class Player extends GameObject {
                 sIndex = sIndex + 1;
             }
 
-            // -------- SPINNING HAZARDS --------
+            // -------- SPINNING HAZARDS (bounce/push mechanic) --------
             java.util.List<SpinningHazard> spinList = level.getSpinningHazards();
             int spinIndex = 0;
             while (spinIndex < spinList.size()) {
                 SpinningHazard spin = spinList.get(spinIndex);
                 if (spin.collidesWithPlayer(x, y, width, height)) {
-                    markDead();
-                    Sound.play("/src/assets/sounds/ouch.wav");
+                    int pushDir = spin.getPushDirection(x, width);
+                    
+                    // Strong horizontal push
+                    velX = pushDir * 18;
+                    x = x + pushDir * 90;
+                    
+                    // Medium upward bounce
+                    velY = -12;
+                    onGround = false;
+                    
+                    Sound.play("/src/assets/sounds/jump.wav");
                 }
                 spinIndex = spinIndex + 1;
             }

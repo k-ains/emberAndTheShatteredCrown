@@ -142,6 +142,7 @@ public class Assets {
     // ---------- CANDY SPECIAL ----------
     public static BufferedImage candySpin;
     public static BufferedImage candyPop;
+    public static BufferedImage candyBreakable;
 
 
     public static void init() {
@@ -342,6 +343,7 @@ public class Assets {
         // candy special tiles
         candySpin = tryLoad("assets/candySpin.png", "src/assets/candySpin.png");
         candyPop  = tryLoad("assets/candyPop.png",  "src/assets/candyPop.png");
+        candyBreakable = tryLoad("assets/candyBreakable.png", "src/assets/candyBreakable.png");
     }
 
 

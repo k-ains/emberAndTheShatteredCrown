@@ -1,5 +1,7 @@
 package src.game;
 
+import java.awt.image.BufferedImage;
+
 public class Candy extends SimpleLevel {
 
     public Candy() {
@@ -41,12 +43,12 @@ public class Candy extends SimpleLevel {
         // =========================================================
         int p0X = previousX;
         addNormalPlatformWide(p0X, startY, tilesWide);
-        messageBoxes.add(new MessageBox(p0X + 4 * TILE, startY - 3 * TILE, true, "Candy Land: Watch for floating ghosts!"));
+        messageBoxes.add(new MessageBox(p0X + 4 * TILE, startY - 70, true, "Candy Land: Watch for floating ghosts!"));
         
         int p1Y = startY - gap;
         int p1X = pickPlatformX(p0X, minXAllowed, maxXAllowed);
         addNormalPlatformWide(p1X, p1Y, tilesWide);
-        messageBoxes.add(new MessageBox(p1X + 4 * TILE, p1Y - 3 * TILE, true, "Ghosts phase through platforms!"));
+        messageBoxes.add(new MessageBox(p1X + 4 * TILE, p1Y - 70, true, "Ghosts phase through platforms!"));
 
         previousX = p1X;
         int currentY = p1Y;
@@ -81,25 +83,51 @@ public class Candy extends SimpleLevel {
             boolean isLastPlatform = (i == numberOfPlatforms - 1);
 
             // ===============================
-            // PLATFORM
+            // PLATFORM (with random breakable tiles)
             // ===============================
+            boolean makeBreakable = !isCheckpointIndex && !isLastPlatform && i >= 2;
+            int breakableCount = makeBreakable ? 2 : 0; // always 2 breakable tiles
+            
             int t = 0;
             while (t < tilesWide) {
-
-                Tile tile = new Tile(
-                    platformX + t * TILE,
-                    platformY,
-                    TILE,
-                    TILE,
-                    true
-                );
-
-                if (t == 0) {
-                    tile.setSprite(Assets.candyRoofLeft);
-                } else if (t == tilesWide - 1) {
-                    tile.setSprite(Assets.candyRoofRight);
+                boolean isBreakable = false;
+                
+                if (makeBreakable && breakableCount > 0 && t >= 2 && t < tilesWide - 2) {
+                    if (random.nextInt(100) < 60) {
+                        isBreakable = true;
+                        breakableCount = breakableCount - 1;
+                    }
+                }
+                
+                Tile tile;
+                
+                if (isBreakable) {
+                    BufferedImage[] breakSprites = new BufferedImage[2];
+                    breakSprites[0] = Assets.candyBreakable;
+                    breakSprites[1] = Assets.candyBreakable; // same for now
+                    tile = new BreakableTile(
+                        platformX + t * TILE,
+                        platformY,
+                        TILE,
+                        TILE,
+                        breakSprites
+                    );
                 } else {
-                    tile.setSprite(Assets.candyRoofMid);
+                    tile = new Tile(
+                        platformX + t * TILE,
+                        platformY,
+                        TILE,
+                        TILE,
+                        true
+                    );
+                    
+                    if (t == 0) {
+                        tile.setSprite(Assets.candyRoofLeft);
+                    } else if (t == tilesWide - 1) {
+                        tile.setSprite(Assets.candyRoofRight);
+                    } else {
+                        tile.setSprite(Assets.candyRoofMid);
+                    }
                 }
 
                 tiles.add(tile);

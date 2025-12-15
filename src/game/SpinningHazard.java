@@ -14,7 +14,7 @@ public class SpinningHazard extends GameObject {
     public SpinningHazard(int x, int y, int w, int h) {
         super(x, y, w, h);
         rotation = 0;
-        rotationSpeed = 2.0f;
+        rotationSpeed = 5.0f;
         sprite = null;
     }
     
@@ -79,5 +79,16 @@ public class SpinningHazard extends GameObject {
         
         boolean collision = !(pright < left || pleft > right || pbottom < top || ptop > bottom);
         return collision;
+    }
+    
+    public int getPushDirection(int px, int pw) {
+        int playerCenterX = px + pw / 2;
+        int hazardCenterX = x + width / 2;
+        
+        if (playerCenterX < hazardCenterX) {
+            return -1; // push left
+        } else {
+            return 1; // push right
+        }
     }
 }
