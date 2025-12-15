@@ -36,10 +36,24 @@ public class Candy extends SimpleLevel {
         int lastPlatformX = previousX;
         int lastPlatformY = startY;
 
-        int i = 0;
-        while (i < numberOfPlatforms) {
+        // =========================================================
+        // INTRO SEQUENCE (tutorial messages for candy level)
+        // =========================================================
+        int p0X = previousX;
+        addNormalPlatformWide(p0X, startY, tilesWide);
+        messageBoxes.add(new MessageBox(p0X + 4 * TILE, startY - 3 * TILE, true, "Candy Land: Watch for floating ghosts!"));
+        
+        int p1Y = startY - gap;
+        int p1X = pickPlatformX(p0X, minXAllowed, maxXAllowed);
+        addNormalPlatformWide(p1X, p1Y, tilesWide);
+        messageBoxes.add(new MessageBox(p1X + 4 * TILE, p1Y - 3 * TILE, true, "Ghosts phase through platforms!"));
 
-            int platformY = startY - gap * i;
+        previousX = p1X;
+        int currentY = p1Y;
+
+        int i = 2;
+        while (i < numberOfPlatforms) {
+            int platformY = currentY - gap;
 
             int platformX = previousX;
             boolean valid = false;
@@ -155,34 +169,42 @@ public class Candy extends SimpleLevel {
             }
 
             // ===============================
+            // SPINNING HAZARDS
+            // ===============================
+            boolean canHaveSpin = !isCheckpointIndex && !hasSpike && !isLastPlatform && i % 5 == 3;
+            if (canHaveSpin) {
+                int spinSize = 40;
+                int spinX = platformX + platformWidth / 2 - spinSize / 2;
+                int spinY = platformY - spinSize - 20;
+                
+                SpinningHazard spin = new SpinningHazard(spinX, spinY, spinSize, spinSize);
+                spin.setSprite(Assets.candySpin);
+                spinningHazards.add(spin);
+            }
+
+            // ===============================
+            // POP TILES (some platforms disappear/reappear)
+            // ===============================
+            boolean makePopTile = !isCheckpointIndex && !hasSpike && !isLastPlatform && i % 6 == 4;
+            
+            // ===============================
             // ENEMIES
             // ===============================
             boolean canHaveEnemy =
                 !isCheckpointIndex &&
                 !hasSpike &&
                 !isLastPlatform &&
-                i >= 5 &&
-                i % 4 == 1;
+                !canHaveSpin &&
+                i >= 3;
 
             if (canHaveEnemy) {
-                int ew = 40;
-                int eh = 32;
-
-                int ex = platformX + platformWidth / 2 - ew / 2;
-                int ey = platformY - eh;
-
-                int margin = 30;
-                enemies.add(new WalkingEnemy(
-                    ex, ey, ew, eh,
-                    platformX + margin,
-                    platformX + platformWidth - margin,
-                    2
-                ));
+                maybeAddGhostOnWide(platformX, platformY, platformWidth, i);
             }
 
             previousX = platformX;
             lastPlatformX = platformX;
             lastPlatformY = platformY;
+            currentY = platformY;
             i = i + 1;
         }
 
@@ -224,5 +246,92 @@ public class Candy extends SimpleLevel {
             }
             r = r + 1;
         }
+    }
+
+    private int pickPlatformX(int previousX, int minXAllowed, int maxXAllowed) {
+        int platformX = previousX;
+        int maxShift = 200;
+
+        boolean valid = false;
+        while (!valid) {
+            int fullRange = maxXAllowed - minXAllowed;
+            int randomOffset = 0;
+
+            if (fullRange > 0) {
+                randomOffset = random.nextInt(fullRange + 1);
+            }
+
+            int candidateX = minXAllowed + randomOffset;
+
+            int diff = candidateX - previousX;
+            if (diff < 0) {
+                diff = -diff;
+            }
+
+            if (diff <= maxShift) {
+                platformX = candidateX;
+                valid = true;
+            }
+        }
+
+        int result = platformX;
+        return result;
+    }
+
+    private void addNormalPlatformWide(int x, int y, int tilesWide) {
+        int TILE = 32;
+        int i = 0;
+        while (i < tilesWide) {
+            Tile t = new Tile(x + i * TILE, y, TILE, TILE, true);
+
+            if (i == 0) {
+                t.setSprite(Assets.candyRoofLeft);
+            } else if (i == tilesWide - 1) {
+                t.setSprite(Assets.candyRoofRight);
+            } else {
+                t.setSprite(Assets.candyRoofMid);
+            }
+
+            tiles.add(t);
+            i = i + 1;
+        }
+    }
+
+    private void maybeAddGhostOnWide(int platformX, int platformY, int platformWidthPx, int index) {
+        if (enemies == null) {
+            return;
+        }
+        if (index < 3) {
+            return;
+        }
+
+        int roll = random.nextInt(100);
+        if (roll >= 50) {
+            return;
+        }
+
+        int enemyW = 48;
+        int enemyH = 32;
+
+        int margin = 32;
+
+        int leftBound = platformX + margin;
+        int rightBound = platformX + platformWidthPx - margin - enemyW;
+
+        if (rightBound <= leftBound) {
+            return;
+        }
+
+        int lane = random.nextInt(3);
+        int enemyX = leftBound;
+
+        if (lane == 1) {
+            enemyX = platformX + platformWidthPx / 2 - enemyW / 2;
+        } else if (lane == 2) {
+            enemyX = rightBound;
+        }
+
+        int enemyY = platformY - enemyH;
+        enemies.add(new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2));
     }
 }

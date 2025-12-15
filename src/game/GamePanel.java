@@ -62,8 +62,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         //level = new Beach();
         //gameMode = MODE_TUTORIAL;
         //level = new Tutorial();
-        // gameMode = MODE_ICE;
-        // level = new Ice();
+        //gameMode = MODE_ICE;
+        //level = new Ice();
         gameMode = MODE_CANDY;
         level = new Candy();
 

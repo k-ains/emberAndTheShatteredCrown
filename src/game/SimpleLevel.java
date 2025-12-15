@@ -24,6 +24,7 @@ public abstract class SimpleLevel {
     protected java.util.List<Plant> plants;
     protected java.util.List<Star> stars;
     protected java.util.List<HeartBox> heartBoxes;
+    protected java.util.List<SpinningHazard> spinningHazards;
 
     
 
@@ -41,6 +42,7 @@ public abstract class SimpleLevel {
         plants = new java.util.ArrayList<Plant>();
         stars = new java.util.ArrayList<Star>();
         heartBoxes = new java.util.ArrayList<HeartBox>();
+        spinningHazards = new java.util.ArrayList<SpinningHazard>();
 
         spawnX = 100;
         spawnY = GamePanel.HEIGHT - 120;
@@ -124,6 +126,11 @@ public abstract class SimpleLevel {
             i = i + 1;
         }
 
+        i = 0;
+        while (i < spinningHazards.size()) {
+            spinningHazards.get(i).draw(g);
+            i = i + 1;
+        }
 
     }
 
@@ -158,6 +165,12 @@ public abstract class SimpleLevel {
         while (i < tiles.size()) {
             Tile t = tiles.get(i);
             t.update(this);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < spinningHazards.size()) {
+            spinningHazards.get(i).update(this);
             i = i + 1;
         }
 
@@ -197,6 +210,11 @@ public abstract class SimpleLevel {
 
     public List<Door> getDoors() {
         List<Door> result = doors;
+        return result;
+    }
+
+    public List<SpinningHazard> getSpinningHazards() {
+        List<SpinningHazard> result = spinningHazards;
         return result;
     }
 

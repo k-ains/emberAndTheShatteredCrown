@@ -378,6 +378,18 @@ public class Player extends GameObject {
                 sIndex = sIndex + 1;
             }
 
+            // -------- SPINNING HAZARDS --------
+            java.util.List<SpinningHazard> spinList = level.getSpinningHazards();
+            int spinIndex = 0;
+            while (spinIndex < spinList.size()) {
+                SpinningHazard spin = spinList.get(spinIndex);
+                if (spin.collidesWithPlayer(x, y, width, height)) {
+                    markDead();
+                    Sound.play("/src/assets/sounds/ouch.wav");
+                }
+                spinIndex = spinIndex + 1;
+            }
+
             // -------- ENEMIES --------
             java.util.List<WalkingEnemy> enemyList = level.getEnemies();
             int eIndex = 0;

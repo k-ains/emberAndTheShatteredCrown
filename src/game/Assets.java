@@ -139,6 +139,10 @@ public class Assets {
     public static BufferedImage[] ghostWalk;
     public static BufferedImage ghostFallback;
 
+    // ---------- CANDY SPECIAL ----------
+    public static BufferedImage candySpin;
+    public static BufferedImage candyPop;
+
 
     public static void init() {
 
@@ -334,6 +338,10 @@ public class Assets {
         // beach spikes
         coralSpike    = tryLoad("assets/coralSpike.png",    "src/assets/coralSpike.png");
         seagrassSpike = tryLoad("assets/seagrassSpike.png", "src/assets/seagrassSpike.png");
+
+        // candy special tiles
+        candySpin = tryLoad("assets/candySpin.png", "src/assets/candySpin.png");
+        candyPop  = tryLoad("assets/candyPop.png",  "src/assets/candyPop.png");
     }
 
 
