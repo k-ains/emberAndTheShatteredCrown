@@ -36,6 +36,13 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     private int gameMode;
     private boolean[] mapUnlocked;
 
+    private boolean paused;
+    private int pauseMenuSelection;
+    private static final int PAUSE_OPTION_RESUME = 0;
+    private static final int PAUSE_OPTION_RESTART = 1;
+    private static final int PAUSE_OPTION_QUIT = 2;
+    private static final int PAUSE_MENU_OPTIONS = 3;
+
     public GamePanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setFocusable(true);
@@ -51,13 +58,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             m = m + 1;
         }
         //for debugging only
-        gameMode = MODE_BEACH;
-        level = new Beach();
-        // gameMode = MODE_TUTORIAL;
-        // level = new Tutorial();
-
-        // gameMode = MODE_ICE;
-        // level = new Ice();
+        //gameMode = MODE_BEACH;
+        //level = new Beach();
+        //gameMode = MODE_TUTORIAL;
+        //level = new Tutorial();
+        //gameMode = MODE_ICE;
+        //level = new Ice();
+        gameMode = MODE_CANDY;
+        level = new Candy();
 
         int startX = level.getSpawnX();
         int startY = level.getSpawnY();
@@ -70,7 +78,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         runMaxPlatformCount = 0;
         runBestY = player.getY();
         currentPlatformCount = 0;
-        Sound.playMusic("/src/assets/sounds/background.wav");
+
+        paused = false;
+        pauseMenuSelection = PAUSE_OPTION_RESUME;
     }
 
     public void startGameLoop() {
@@ -103,6 +113,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     private void updateGame() {
+        if (paused) {
+            return;
+        }
+
         player.update(level);
         level.update();
 
@@ -145,10 +159,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
 
         // FALLING DEATH:
-        // For tower style levels only. Beach still uses it, but camera MUST be correct.
+        // Player dies when falling below the world bottom, not just off-screen
         if (gameMode != MODE_TOWN) {
-            int visibleBottom = cameraY + HEIGHT + 40;
-            if (player.getY() > visibleBottom) {
+            int worldBottom = level.getWorldHeight() + 200;
+            if (player.getY() > worldBottom) {
                 player.markDead();
             }
         }
@@ -205,6 +219,8 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
     g.drawImage(Assets.backgroundBeach, 0, 0, WIDTH, HEIGHT, null);
 } else if (gameMode == MODE_ICE && Assets.backgroundIce != null) {
     g.drawImage(Assets.backgroundIce, 0, 0, WIDTH, HEIGHT, null);
+} else if (gameMode == MODE_CANDY && Assets.backgroundCandy != null) {
+    g.drawImage(Assets.backgroundCandy, 0, 0, WIDTH, HEIGHT, null);
 } else {
     if (Assets.backgroundTower != null) {
         g.drawImage(Assets.backgroundTower, 0, 0, WIDTH, HEIGHT, null);
@@ -216,7 +232,17 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
 
 
         java.awt.Graphics2D g2 = (java.awt.Graphics2D) g;
-        g2.translate(0, -cameraY);
+        
+        // Screen shake effect (from hurt OR knockback)
+        int shakeX = 0;
+        int shakeY = 0;
+        if (player.getHurtShakeTimer() > 0 || player.getKnockbackShakeTimer() > 0) {
+            int shakeAmount = 4;
+            shakeX = (int)(Math.random() * shakeAmount * 2 - shakeAmount);
+            shakeY = (int)(Math.random() * shakeAmount * 2 - shakeAmount);
+        }
+        
+        g2.translate(shakeX, shakeY - cameraY);
 
         level.draw(g2);
         player.draw(g2);
@@ -227,9 +253,20 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
             g2.drawString("Best (" + bestPlatformCount + ")", 10, bestPlatformLineY - 4);
         }
 
-        g2.translate(0, cameraY);
+        g2.translate(-shakeX, cameraY - shakeY);
+
+        // Red overlay when hurt
+        if (player.getHurtShakeTimer() > 0) {
+            int alpha = (int)(100 * (player.getHurtShakeTimer() / 20.0));
+            g.setColor(new Color(255, 0, 0, alpha));
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+        }
 
         drawHUD(g);
+
+        if (paused) {
+            drawPauseMenu(g);
+        }
     }
 
     private void drawHUD(Graphics g) {
@@ -296,6 +333,84 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
         }
     }
 
+    private void drawPauseMenu(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 180));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        g.setFont(g.getFont().deriveFont(32f));
+        g.setColor(Color.WHITE);
+        String title = "PAUSED";
+        int titleWidth = g.getFontMetrics().stringWidth(title);
+        g.drawString(title, (WIDTH - titleWidth) / 2, HEIGHT / 3);
+
+        g.setFont(g.getFont().deriveFont(24f));
+
+        String[] options = new String[PAUSE_MENU_OPTIONS];
+        options[PAUSE_OPTION_RESUME] = "Resume";
+        options[PAUSE_OPTION_RESTART] = "Restart Level";
+        options[PAUSE_OPTION_QUIT] = "Quit to Town";
+
+        int menuStartY = HEIGHT / 2;
+        int menuSpacing = 40;
+
+        int i = 0;
+        while (i < PAUSE_MENU_OPTIONS) {
+            String option = options[i];
+            int optionWidth = g.getFontMetrics().stringWidth(option);
+            int optionX = (WIDTH - optionWidth) / 2;
+            int optionY = menuStartY + i * menuSpacing;
+
+            if (i == pauseMenuSelection) {
+                g.setColor(Color.YELLOW);
+                g.drawString("> " + option + " <", optionX - 30, optionY);
+            } else {
+                g.setColor(Color.WHITE);
+                g.drawString(option, optionX, optionY);
+            }
+
+            i = i + 1;
+        }
+
+        g.setFont(g.getFont().deriveFont(14f));
+        g.setColor(Color.LIGHT_GRAY);
+        g.drawString("ESC to resume", 10, HEIGHT - 10);
+    }
+
+    private void handlePauseMenuSelection() {
+        if (pauseMenuSelection == PAUSE_OPTION_RESUME) {
+            paused = false;
+        } else if (pauseMenuSelection == PAUSE_OPTION_RESTART) {
+            paused = false;
+            restartCurrentLevel();
+        } else if (pauseMenuSelection == PAUSE_OPTION_QUIT) {
+            paused = false;
+            switchToTown();
+        }
+    }
+
+    private void restartCurrentLevel() {
+        if (gameMode == MODE_TUTORIAL) {
+            level = new Tutorial();
+        } else if (gameMode == MODE_BEACH) {
+            level = new Beach();
+        } else if (gameMode == MODE_ICE) {
+            level = new Ice();
+        } else if (gameMode == MODE_CANDY) {
+            level = new Candy();
+        } else if (gameMode == MODE_TOWN) {
+            level = new Town();
+        }
+
+        player.respawnForNewLevel(level.getSpawnX(), level.getSpawnY());
+        cameraY = computeCameraY();
+
+        if (gameMode == MODE_TUTORIAL) {
+            runMaxPlatformCount = 0;
+            runBestY = player.getY();
+            currentPlatformCount = 0;
+        }
+    }
+
  private void switchToTown() {
     level = new Town();
     gameMode = MODE_TOWN;
@@ -334,6 +449,33 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
+
+        // ESC toggles pause
+        if (code == KeyEvent.VK_ESCAPE) {
+            paused = !paused;
+            if (paused) {
+                pauseMenuSelection = PAUSE_OPTION_RESUME;
+            }
+            return;
+        }
+
+        // Handle pause menu navigation
+        if (paused) {
+            if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
+                pauseMenuSelection = pauseMenuSelection - 1;
+                if (pauseMenuSelection < 0) {
+                    pauseMenuSelection = PAUSE_MENU_OPTIONS - 1;
+                }
+            } else if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
+                pauseMenuSelection = pauseMenuSelection + 1;
+                if (pauseMenuSelection >= PAUSE_MENU_OPTIONS) {
+                    pauseMenuSelection = 0;
+                }
+            } else if (code == KeyEvent.VK_ENTER || code == KeyEvent.VK_SPACE) {
+                handlePauseMenuSelection();
+            }
+            return;
+        }
 
         // DEBUG HOTKEYS (so you don't redo tutorial):
         // 1 = Town, 2 = Beach, 3 = Tutorial

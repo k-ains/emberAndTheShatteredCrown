@@ -11,6 +11,7 @@ public class Assets {
     public static BufferedImage backgroundTown;
     public static BufferedImage backgroundBeach;
     public static BufferedImage backgroundIce;
+    public static BufferedImage backgroundCandy;
     public static BufferedImage background;
 
     // ---------- COMMON ----------
@@ -138,6 +139,11 @@ public class Assets {
     public static BufferedImage[] ghostWalk;
     public static BufferedImage ghostFallback;
 
+    // ---------- CANDY SPECIAL ----------
+    public static BufferedImage candySpin;
+    public static BufferedImage candyPop;
+    public static BufferedImage candyBreakable;
+
 
     public static void init() {
 
@@ -146,6 +152,10 @@ public class Assets {
         backgroundTown  = tryLoad("assets/bg_town.png",  "src/assets/bg_town.png");
         backgroundBeach = tryLoad("assets/bg_beach.png", "src/assets/bg_beach.png");
         backgroundIce = tryLoad("assets/bg_ice.png", "src/assets/bg_ice.png");
+        backgroundCandy = tryLoad("assets/bg_candy.jpg", "src/assets/bg_candy.jpg");
+        if (backgroundCandy == null) {
+            backgroundCandy = tryLoad("assets/bg_candy.png", "src/assets/bg_candy.png");
+        }
 
         // default background
         background = backgroundTower;
@@ -329,6 +339,11 @@ public class Assets {
         // beach spikes
         coralSpike    = tryLoad("assets/coralSpike.png",    "src/assets/coralSpike.png");
         seagrassSpike = tryLoad("assets/seagrassSpike.png", "src/assets/seagrassSpike.png");
+
+        // candy special tiles
+        candySpin = tryLoad("assets/candySpin.png", "src/assets/candySpin.png");
+        candyPop  = tryLoad("assets/candyPop.png",  "src/assets/candyPop.png");
+        candyBreakable = tryLoad("assets/candyBreakable.png", "src/assets/candyBreakable.png");
     }
 
 
