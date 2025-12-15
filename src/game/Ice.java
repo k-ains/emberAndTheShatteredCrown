@@ -35,10 +35,11 @@ public class Ice extends SimpleLevel {
         int maxHorizontalShift = 200;
 
         int previousX = (minXAllowed + maxXAllowed) / 2;
-        int startY = floorY - 120;
-
-        int lastPlatformX = previousX;
+        int startY = floorY - 120;        int lastPlatformX = previousX;
         int lastPlatformY = startY;
+        
+        int starsPlaced = 0;
+        int heartsPlaced = 0;
 
         int i = 0;
         while (i < numberOfPlatforms) {
@@ -65,18 +66,15 @@ public class Ice extends SimpleLevel {
                     platformX = candidate;
                     valid = true;
                 }
-            }
-
-            boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
-            boolean isLastPlatform = (i == numberOfPlatforms - 1);
-
-            boolean makeSlope =
+            }            boolean isCheckpointIndex = (i == 4 || i == 9 || i == 14);
+            boolean isLastPlatform = (i == numberOfPlatforms - 1);            boolean makeSlope =
                 !isCheckpointIndex &&
                 !isLastPlatform &&
                 i >= 3 &&
                 i % 4 == 2;   // predictable tutorial spacing
 
             boolean hasSpike = false;
+            boolean hasBreakable = false;
 
             // ===============================
             // PLATFORM / SLOPE
@@ -91,9 +89,7 @@ public class Ice extends SimpleLevel {
                 tiles.add(slope);
             } else {
                 int t = 0;
-                while (t < tilesWide) {
-
-                    Tile tile;
+                while (t < tilesWide) {                    Tile tile;
 
                     if (!isCheckpointIndex && !hasSpike && random.nextInt(100) < 20) {
                         BufferedImage[] breakableSprites = new BufferedImage[] {
@@ -107,7 +103,8 @@ public class Ice extends SimpleLevel {
                             TILE,
                             TILE,
                             breakableSprites
-                        ); 
+                        );
+                        hasBreakable = true;
                     } else {
                     
                         tile = new Tile(
@@ -132,9 +129,7 @@ public class Ice extends SimpleLevel {
                     tiles.add(tile);
                     t = t + 1;
                 }
-            }
-
-            // ===============================
+            }            // ===============================
             // CHECKPOINT
             // ===============================
             if (isCheckpointIndex) {
@@ -145,9 +140,7 @@ public class Ice extends SimpleLevel {
                 int flagY = platformY - flagH;
 
                 checkpoints.add(new CheckpointFlag(flagX, flagY));
-            }
-
-            // ===============================
+            }            // ===============================
             // SPIKES (NORMAL PLATFORMS ONLY)
             // ===============================
             if (!makeSlope && !isCheckpointIndex && !isLastPlatform && i % 3 == 2) {
@@ -193,8 +186,35 @@ public class Ice extends SimpleLevel {
                 int cy = platformY - coinSize - 4;
                 coins.add(new Coin(cx, cy, 1));
             }
-
+              // ===============================
+            // STARS (place 3 throughout level)
             // ===============================
+            if (stars != null && starsPlaced < 3) {
+                // Place stars on safe platforms spaced throughout the level
+                boolean placeStar = false;
+                if (i == 10 && starsPlaced == 0) placeStar = true;
+                if (i == 20 && starsPlaced == 1) placeStar = true;
+                if (i == 32 && starsPlaced == 2) placeStar = true;
+                
+                if (placeStar && !hasSpike && !isCheckpointIndex && !makeSlope) {
+                    stars.add(new Star(platformX + platformWidth / 2 - 14, platformY - 150));
+                    starsPlaced++;
+                }
+            }
+            
+            // ===============================
+            // HEARTS (place 2 throughout level)
+            // ===============================
+            if (heartBoxes != null && heartsPlaced < 2) {
+                boolean placeHeart = false;
+                if (i == 12 && heartsPlaced == 0) placeHeart = true;
+                if (i == 25 && heartsPlaced == 1) placeHeart = true;
+                
+                if (placeHeart && !hasSpike && !isCheckpointIndex) {
+                    heartBoxes.add(new HeartBox(platformX + platformWidth / 2 - 16, platformY - 70));
+                    heartsPlaced++;
+                }
+            }            // ===============================
             // ENEMIES
             // ===============================
             boolean canHaveEnemy =
@@ -203,9 +223,7 @@ public class Ice extends SimpleLevel {
                 !makeSlope &&
                 !isLastPlatform &&
                 i >= 5 &&
-                i % 4 == 1;
-
-            if (canHaveEnemy) {
+                i % 4 == 1;            if (canHaveEnemy) {
                 maybeAddGhostOnWide(platformX, platformY, platformWidth, i);
             }
 
@@ -260,10 +278,10 @@ public class Ice extends SimpleLevel {
             enemyX = platformX + platformWidthPx / 2 - enemyW / 2;
         } else if (lane == 2) {
             enemyX = rightBound;
-        }
-
-        int enemyY = platformY - enemyH;
-        enemies.add(new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2));
+        }        int enemyY = platformY - enemyH;
+        GhostEnemy ghost = new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2);
+        ghost.setFollowPlayer(true); // Enable player following
+        enemies.add(ghost);
     }
 
 }

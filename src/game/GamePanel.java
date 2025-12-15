@@ -62,8 +62,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         //level = new Beach();
         //gameMode = MODE_TUTORIAL;
         //level = new Tutorial();
-        //gameMode = MODE_ICE;
-        //level = new Ice();
+        // gameMode = MODE_ICE;
+        // level = new Ice();
         gameMode = MODE_CANDY;
         level = new Candy();
 
@@ -112,13 +112,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         }
     }
 
-    private void updateGame() {
-        if (paused) {
+    private void updateGame() {        if (paused) {
             return;
         }
 
         player.update(level);
-        level.update();
+        level.updateWithPlayer(player);
 
         if (gameMode == MODE_TUTORIAL) {
             int currentPlatforms = level.getPlatformsReachedCount(player.getY());

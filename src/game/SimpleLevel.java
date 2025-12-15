@@ -175,6 +175,51 @@ public abstract class SimpleLevel {
         }
 
     }
+    
+    public void updateWithPlayer(Player player) {
+        int i = 0;
+        while (i < enemies.size()) {
+            WalkingEnemy enemy = enemies.get(i);
+            if (enemy instanceof GhostEnemy) {
+                GhostEnemy ghost = (GhostEnemy) enemy;
+                ghost.setPlayerPosition(player.getX(), player.getY());
+            }
+            enemy.update(this);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < coins.size()) {
+            Coin coin = coins.get(i);
+            coin.update(this);
+            i = i + 1;
+        }
+        
+        i = 0;
+        while (i < plants.size()) {
+            plants.get(i).update(this);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < stars.size()) {
+            stars.get(i).update(this);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < tiles.size()) {
+            Tile t = tiles.get(i);
+            t.update(this);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < spinningHazards.size()) {
+            spinningHazards.get(i).update(this);
+            i = i + 1;
+        }
+    }
 
     // -------- getters --------
 
