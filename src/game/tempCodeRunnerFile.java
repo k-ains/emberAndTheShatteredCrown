@@ -289,7 +289,7 @@ public class Player extends GameObject {
                     Rectangle tb = t.getBounds();
                     if (playerBounds.intersects(tb)) {
                         onSlope = true;
-                        slopeLeft = ((SlopeTile) t).isLeft();
+                        slidingLeft = ((SlopeTile) t).isLeft();
                     }
                 }
             }
@@ -307,6 +307,9 @@ public class Player extends GameObject {
             }
 
                 
+
+            
+
             // -------- PLANTS --------
             if (level.plants != null) {
                 java.util.List<Plant> plantList = level.plants;

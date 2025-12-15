@@ -124,6 +124,9 @@ public class Assets {
     public static BufferedImage iceFloorTopLeft;
     public static BufferedImage iceFloorTopMid;
     public static BufferedImage iceFloorTopRight;
+    public static BufferedImage iceSlopeRight;
+    public static BufferedImage iceSlopeLeft;
+    public static BufferedImage iceSpike;
 
     public static BufferedImage iceFloor;
 
@@ -253,6 +256,9 @@ public class Assets {
         iceFloorTopMid      = tryLoad("assets/iceFloorTopMid.png",     "src/assets/iceFloorTopMid.png");
         iceFloorTopRight    = tryLoad("assets/iceFloorTopRight.png",     "src/assets/iceFloorTopRight.png");
         iceFloor            = tryLoad("assets/iceFloor.png",            "src/assets/iceFloor.png");
+        iceSlopeLeft        = tryLoad("assets/iceSlopeLeft.png",     "src/assets/iceSlopeLeft.png");
+        iceSlopeRight       = tryLoad("assets/iceSlopeRight.png",     "src/assets/iceSlopeRight.png");
+        iceSpike            = tryLoad("assets/iceSpike.png",     "src/assets/iceSpike.png");
         
         // umbrella platform tiles
         umbrellaLeft  = tryLoad("assets/umbrellaLeft.png",  "src/assets/umbrellaLeft.png");

@@ -119,27 +119,27 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         player.updateMessageTimer();
 
         /// ----- CAMERA BEHAVIOR -----
-if (gameMode == MODE_TOWN) {
-    cameraY = 0;
-} else {
-    // TOWER RULE: camera only moves UP (never down)
-    int desiredCameraY = player.getY() - HEIGHT / 2;
+        if (gameMode == MODE_TOWN) {
+            cameraY = 0;
+        } else {
+            // TOWER RULE: camera only moves UP (never down)
+            int desiredCameraY = player.getY() - HEIGHT / 2;
 
-    if (desiredCameraY < cameraY) {
-        cameraY = desiredCameraY;
-    }
-    if (cameraY < 0) {
-        cameraY = 0;
-    }
+            if (desiredCameraY < cameraY) {
+                cameraY = desiredCameraY;
+            }
+            if (cameraY < 0) {
+                cameraY = 0;
+            }
 
-    int maxCam = level.getWorldHeight() - HEIGHT;
-    if (maxCam < 0) {
-        maxCam = 0;
-    }
-    if (cameraY > maxCam) {
-        cameraY = maxCam;
-    }
-}
+            int maxCam = level.getWorldHeight() - HEIGHT;
+            if (maxCam < 0) {
+                maxCam = 0;
+            }
+            if (cameraY > maxCam) {
+                cameraY = maxCam;
+            }
+        }
 
 
         // FALLING DEATH:
