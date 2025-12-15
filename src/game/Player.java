@@ -178,6 +178,7 @@ public class Player extends GameObject {
                 if (jumpInput && onGround) {
                     velY = JUMP_STRENGTH;
                     onGround = false;
+                    Sound.play("/src/assets/sounds/jump.wav");
                 }
 
                 velY = velY + GRAVITY;
@@ -189,6 +190,7 @@ public class Player extends GameObject {
 
                 if (upPressed) {
                     velY = -CLIMB_SPEED;
+                    
                 } else {
                     if (downPressed) {
                         velY = CLIMB_SPEED;
@@ -265,6 +267,11 @@ public class Player extends GameObject {
                             } else {
                                 velY = 0;
                                 onGround = true;
+                            }
+
+                            if (t instanceof BreakableTile) {
+                                ((BreakableTile) t).trigger();
+                                
                             }
 
                             playerBounds = getBounds();
@@ -366,6 +373,7 @@ public class Player extends GameObject {
                 Spike spike = spikeList.get(sIndex);
                 if (playerBounds.intersects(spike.getBounds())) {
                     markDead();
+                    Sound.play("/src/assets/sounds/ouch.wav");
                 }
                 sIndex = sIndex + 1;
             }
@@ -377,6 +385,7 @@ public class Player extends GameObject {
                 WalkingEnemy enemy = enemyList.get(eIndex);
                 if (playerBounds.intersects(enemy.getBounds())) {
                     markDead();
+                    Sound.play("/src/assets/sounds/ouch.wav");
                 }
                 eIndex = eIndex + 1;
             }
@@ -618,9 +627,13 @@ public class Player extends GameObject {
             hearts = maxHearts;
             respawnAtStart(level);
             level.resetCheckpoints();
+            
         } else {
             respawnAtCheckpoint(level);
+            
         }
+
+        Sound.play("/src/assets/sounds/ouch.wav");
 
         dead = false;
     }

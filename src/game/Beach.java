@@ -104,89 +104,89 @@ public class Beach extends SimpleLevel {
         // =========================================================
         // REST OF LEVEL (NO RANDOM MESSAGE BOX SPAM)
         // =========================================================
-// =========================================================
-// REST OF LEVEL (NO RANDOM MESSAGE BOX SPAM)
-// Checkpoints: NEVER on umbrellas, NEVER with enemies
-// =========================================================
-int i = 5;
-while (i < platformCount) {
-    int platformX = pickPlatformX(previousX, minXAllowed, maxXAllowed);
+        // =========================================================
+        // REST OF LEVEL (NO RANDOM MESSAGE BOX SPAM)
+        // Checkpoints: NEVER on umbrellas, NEVER with enemies
+        // =========================================================
+        int i = 5;
+        while (i < platformCount) {
+            int platformX = pickPlatformX(previousX, minXAllowed, maxXAllowed);
 
-    boolean wantsCheckpoint = (i == 9 || i == 16 || i == 23); // checkpoints only on NORMAL platforms
+            boolean wantsCheckpoint = (i == 9 || i == 16 || i == 23); // checkpoints only on NORMAL platforms
 
-    boolean makeTree = (i % 7 == 4);
-    boolean makeUmbrella = (i % 5 == 2);
+            boolean makeTree = (i % 7 == 4);
+            boolean makeUmbrella = (i % 5 == 2);
 
-    // If this index is a checkpoint, force it to be a NORMAL platform
-    if (wantsCheckpoint) {
-        makeTree = false;
-        makeUmbrella = false;
-    }
-
-    if (makeTree) {
-        makeUmbrella = false;
-    }
-
-    if (makeTree) {
-        int baseX = platformX + platformWidthPx / 2 - (3 * TILE) / 2;
-        int tTopY = addTree(baseX, currentY + TILE);
-
-        // NO checkpoints here (keeps checkpoints predictable + avoids tree issues)
-        // NO enemies on trees already
-
-        addCoinOn3Wide(baseX, tTopY);
-
-        currentY = tTopY - BASE_GAP;
-    } else if (makeUmbrella) {
-        addUmbrellaPlatformWide(platformX, currentY, PLATFORM_TILES);
-
-        // plants ONLY on umbrellas
-        if (plants != null) {
-            if (random.nextInt(100) < 55) {
-                plants.add(new Plant(platformX + platformWidthPx / 2 - TILE / 2, currentY - TILE));
+            // If this index is a checkpoint, force it to be a NORMAL platform
+            if (wantsCheckpoint) {
+                makeTree = false;
+                makeUmbrella = false;
             }
-        }
 
-        if (stars != null && starsPlaced < 3) {
-            stars.add(new Star(platformX + platformWidthPx / 2 - 14, currentY - STAR_ABOVE_UMBRELLA));
-            starsPlaced = starsPlaced + 1;
-        }
+            if (makeTree) {
+                makeUmbrella = false;
+            }
 
-        addCoinOnWide(platformX, currentY, platformWidthPx);
+            if (makeTree) {
+                int baseX = platformX + platformWidthPx / 2 - (3 * TILE) / 2;
+                int tTopY = addTree(baseX, currentY + TILE);
 
-        // ✅ umbrellas never get checkpoints
-        // ✅ enemies are allowed here
-        maybeAddCrabOnWide(platformX, currentY, platformWidthPx, i);
+                // NO checkpoints here (keeps checkpoints predictable + avoids tree issues)
+                // NO enemies on trees already
 
-        currentY = currentY - (BASE_GAP + UMBRELLA_NEXT_BONUS);
-    } else {
-        // NORMAL platform
-        addNormalPlatformWide(platformX, currentY, PLATFORM_TILES);
+                addCoinOn3Wide(baseX, tTopY);
 
-        if (heartBoxes != null) {
-            if (i >= 10 && heartsPlaced < 2) {
-                if (random.nextInt(100) < 30) {
-                    heartBoxes.add(new HeartBox(platformX + platformWidthPx / 2 - 16, currentY - 70));
-                    heartsPlaced = heartsPlaced + 1;
+                currentY = tTopY - BASE_GAP;
+            } else if (makeUmbrella) {
+                addUmbrellaPlatformWide(platformX, currentY, PLATFORM_TILES);
+
+                // plants ONLY on umbrellas
+                if (plants != null) {
+                    if (random.nextInt(100) < 55) {
+                        plants.add(new Plant(platformX + platformWidthPx / 2 - TILE / 2, currentY - TILE));
+                    }
                 }
+
+                if (stars != null && starsPlaced < 3) {
+                    stars.add(new Star(platformX + platformWidthPx / 2 - 14, currentY - STAR_ABOVE_UMBRELLA));
+                    starsPlaced = starsPlaced + 1;
+                }
+
+                addCoinOnWide(platformX, currentY, platformWidthPx);
+
+                // ✅ umbrellas never get checkpoints
+                // ✅ enemies are allowed here
+                maybeAddCrabOnWide(platformX, currentY, platformWidthPx, i);
+
+                currentY = currentY - (BASE_GAP + UMBRELLA_NEXT_BONUS);
+            } else {
+                // NORMAL platform
+                addNormalPlatformWide(platformX, currentY, PLATFORM_TILES);
+
+                if (heartBoxes != null) {
+                    if (i >= 10 && heartsPlaced < 2) {
+                        if (random.nextInt(100) < 30) {
+                            heartBoxes.add(new HeartBox(platformX + platformWidthPx / 2 - 16, currentY - 70));
+                            heartsPlaced = heartsPlaced + 1;
+                        }
+                    }
+                }
+
+                if (wantsCheckpoint) {
+                    addCheckpointOnWide(platformX, currentY, platformWidthPx);
+                    // ✅ no enemies on checkpoint platforms
+                } else {
+                    maybeAddCrabOnWide(platformX, currentY, platformWidthPx, i);
+                }
+
+                addCoinOnWide(platformX, currentY, platformWidthPx);
+
+                currentY = currentY - BASE_GAP;
             }
+
+            previousX = platformX;
+            i = i + 1;
         }
-
-        if (wantsCheckpoint) {
-            addCheckpointOnWide(platformX, currentY, platformWidthPx);
-            // ✅ no enemies on checkpoint platforms
-        } else {
-            maybeAddCrabOnWide(platformX, currentY, platformWidthPx, i);
-        }
-
-        addCoinOnWide(platformX, currentY, platformWidthPx);
-
-        currentY = currentY - BASE_GAP;
-    }
-
-    previousX = platformX;
-    i = i + 1;
-}
 
 
         // ensure 3 stars

@@ -28,6 +28,7 @@ public void activate(Player p) {
 
         p.setCheckpoint(respawnX, respawnY);
         p.showMessage("Checkpoint!");
+        Sound.play("/src/assets/sounds/checkpoint.wav");
     }
 }
 

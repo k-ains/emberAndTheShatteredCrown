@@ -104,24 +104,25 @@ public abstract class SimpleLevel {
             House h = houses.get(i);
             h.draw(g);
             i = i + 1;
-}
-         i = 0;
-while (i < heartBoxes.size()) {
-    heartBoxes.get(i).draw(g);
-    i = i + 1;
-}
+        }
 
-i = 0;
-while (i < stars.size()) {
-    stars.get(i).draw(g);
-    i = i + 1;
-}
+        i = 0;
+        while (i < heartBoxes.size()) {
+            heartBoxes.get(i).draw(g);
+            i = i + 1;
+        }
 
-i = 0;
-while (i < plants.size()) {
-    plants.get(i).draw(g);
-    i = i + 1;
-}
+        i = 0;
+        while (i < stars.size()) {
+            stars.get(i).draw(g);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < plants.size()) {
+            plants.get(i).draw(g);
+            i = i + 1;
+        }
 
 
     }
@@ -142,16 +143,23 @@ while (i < plants.size()) {
             i = i + 1;
         }
          i = 0;
-while (i < plants.size()) {
-    plants.get(i).update(this);
-    i = i + 1;
-}
+        while (i < plants.size()) {
+            plants.get(i).update(this);
+            i = i + 1;
+        }
 
-i = 0;
-while (i < stars.size()) {
-    stars.get(i).update(this);
-    i = i + 1;
-}
+        i = 0;
+        while (i < stars.size()) {
+            stars.get(i).update(this);
+            i = i + 1;
+        }
+
+        i = 0;
+        while (i < tiles.size()) {
+            Tile t = tiles.get(i);
+            t.update(this);
+            i = i + 1;
+        }
 
     }
 

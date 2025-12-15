@@ -8,8 +8,8 @@ import java.awt.image.BufferedImage;
 
 public class Tile extends GameObject {
 
-    private boolean solid;
-    private BufferedImage sprite;
+    protected boolean solid;
+    protected BufferedImage sprite;
 
     // simple flags so we know how to draw
     private boolean townTheme;   // true = use town tiles instead of castle
