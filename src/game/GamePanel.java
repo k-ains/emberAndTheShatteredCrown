@@ -36,6 +36,13 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     private int gameMode;
     private boolean[] mapUnlocked;
 
+    private boolean paused;
+    private int pauseMenuSelection;
+    private static final int PAUSE_OPTION_RESUME = 0;
+    private static final int PAUSE_OPTION_RESTART = 1;
+    private static final int PAUSE_OPTION_QUIT = 2;
+    private static final int PAUSE_MENU_OPTIONS = 3;
+
     public GamePanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setFocusable(true);
@@ -71,6 +78,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         runMaxPlatformCount = 0;
         runBestY = player.getY();
         currentPlatformCount = 0;
+
+        paused = false;
+        pauseMenuSelection = PAUSE_OPTION_RESUME;
     }
 
     public void startGameLoop() {
@@ -103,6 +113,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     private void updateGame() {
+        if (paused) {
+            return;
+        }
+
         player.update(level);
         level.update();
 
@@ -232,6 +246,10 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
         g2.translate(0, cameraY);
 
         drawHUD(g);
+
+        if (paused) {
+            drawPauseMenu(g);
+        }
     }
 
     private void drawHUD(Graphics g) {
@@ -298,6 +316,84 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
         }
     }
 
+    private void drawPauseMenu(Graphics g) {
+        g.setColor(new Color(0, 0, 0, 180));
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+
+        g.setFont(g.getFont().deriveFont(32f));
+        g.setColor(Color.WHITE);
+        String title = "PAUSED";
+        int titleWidth = g.getFontMetrics().stringWidth(title);
+        g.drawString(title, (WIDTH - titleWidth) / 2, HEIGHT / 3);
+
+        g.setFont(g.getFont().deriveFont(24f));
+
+        String[] options = new String[PAUSE_MENU_OPTIONS];
+        options[PAUSE_OPTION_RESUME] = "Resume";
+        options[PAUSE_OPTION_RESTART] = "Restart Level";
+        options[PAUSE_OPTION_QUIT] = "Quit to Town";
+
+        int menuStartY = HEIGHT / 2;
+        int menuSpacing = 40;
+
+        int i = 0;
+        while (i < PAUSE_MENU_OPTIONS) {
+            String option = options[i];
+            int optionWidth = g.getFontMetrics().stringWidth(option);
+            int optionX = (WIDTH - optionWidth) / 2;
+            int optionY = menuStartY + i * menuSpacing;
+
+            if (i == pauseMenuSelection) {
+                g.setColor(Color.YELLOW);
+                g.drawString("> " + option + " <", optionX - 30, optionY);
+            } else {
+                g.setColor(Color.WHITE);
+                g.drawString(option, optionX, optionY);
+            }
+
+            i = i + 1;
+        }
+
+        g.setFont(g.getFont().deriveFont(14f));
+        g.setColor(Color.LIGHT_GRAY);
+        g.drawString("ESC to resume", 10, HEIGHT - 10);
+    }
+
+    private void handlePauseMenuSelection() {
+        if (pauseMenuSelection == PAUSE_OPTION_RESUME) {
+            paused = false;
+        } else if (pauseMenuSelection == PAUSE_OPTION_RESTART) {
+            paused = false;
+            restartCurrentLevel();
+        } else if (pauseMenuSelection == PAUSE_OPTION_QUIT) {
+            paused = false;
+            switchToTown();
+        }
+    }
+
+    private void restartCurrentLevel() {
+        if (gameMode == MODE_TUTORIAL) {
+            level = new Tutorial();
+        } else if (gameMode == MODE_BEACH) {
+            level = new Beach();
+        } else if (gameMode == MODE_ICE) {
+            level = new Ice();
+        } else if (gameMode == MODE_CANDY) {
+            level = new Candy();
+        } else if (gameMode == MODE_TOWN) {
+            level = new Town();
+        }
+
+        player.respawnForNewLevel(level.getSpawnX(), level.getSpawnY());
+        cameraY = computeCameraY();
+
+        if (gameMode == MODE_TUTORIAL) {
+            runMaxPlatformCount = 0;
+            runBestY = player.getY();
+            currentPlatformCount = 0;
+        }
+    }
+
  private void switchToTown() {
     level = new Town();
     gameMode = MODE_TOWN;
@@ -336,6 +432,33 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
     @Override
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
+
+        // ESC toggles pause
+        if (code == KeyEvent.VK_ESCAPE) {
+            paused = !paused;
+            if (paused) {
+                pauseMenuSelection = PAUSE_OPTION_RESUME;
+            }
+            return;
+        }
+
+        // Handle pause menu navigation
+        if (paused) {
+            if (code == KeyEvent.VK_UP || code == KeyEvent.VK_W) {
+                pauseMenuSelection = pauseMenuSelection - 1;
+                if (pauseMenuSelection < 0) {
+                    pauseMenuSelection = PAUSE_MENU_OPTIONS - 1;
+                }
+            } else if (code == KeyEvent.VK_DOWN || code == KeyEvent.VK_S) {
+                pauseMenuSelection = pauseMenuSelection + 1;
+                if (pauseMenuSelection >= PAUSE_MENU_OPTIONS) {
+                    pauseMenuSelection = 0;
+                }
+            } else if (code == KeyEvent.VK_ENTER || code == KeyEvent.VK_SPACE) {
+                handlePauseMenuSelection();
+            }
+            return;
+        }
 
         // DEBUG HOTKEYS (so you don't redo tutorial):
         // 1 = Town, 2 = Beach, 3 = Tutorial
