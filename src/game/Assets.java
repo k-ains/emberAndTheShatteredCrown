@@ -10,6 +10,7 @@ public class Assets {
     public static BufferedImage backgroundTower;
     public static BufferedImage backgroundTown;
     public static BufferedImage backgroundBeach;
+    public static BufferedImage backgroundIce;
     public static BufferedImage background;
 
     // ---------- COMMON ----------
@@ -119,6 +120,13 @@ public class Assets {
     public static BufferedImage coralSpike;
     public static BufferedImage seagrassSpike;
 
+    // ---------- ICE LEVEL FLOOR / PLATFORMS ----------
+    public static BufferedImage iceFloorTopLeft;
+    public static BufferedImage iceFloorTopMid;
+    public static BufferedImage iceFloorTopRight;
+
+    public static BufferedImage iceFloor;
+
 
     public static void init() {
 
@@ -126,6 +134,7 @@ public class Assets {
         backgroundTower = tryLoad("assets/bg_tower.png", "src/assets/bg_tower.png");
         backgroundTown  = tryLoad("assets/bg_town.png",  "src/assets/bg_town.png");
         backgroundBeach = tryLoad("assets/bg_beach.png", "src/assets/bg_beach.png");
+        backgroundIce = tryLoad("assets/bg_ice.png", "src/assets/bg_ice.png");
 
         // default background
         background = backgroundTower;
@@ -222,7 +231,7 @@ public class Assets {
         iceRoofLeft  = tryLoad("assets/iceRoofLeft.png",  "src/assets/iceRoofLeft.png");
         iceRoofMid   = tryLoad("assets/iceRoofMid.png",   "src/assets/iceRoofMid.png");
         iceRoofRight = tryLoad("assets/iceRoofRight.png", "src/assets/iceRoofRight.png");
-
+        
         // candy house tiles
         candyWall      = tryLoad("assets/candyWall.png",      "src/assets/candyWall.png");
         candyDoor      = tryLoad("assets/candyDoor.png",      "src/assets/candyDoor.png");
@@ -239,6 +248,12 @@ public class Assets {
         beachFloorBottomLeft  = tryLoad("assets/beachFloorBottomLeft.png",  "src/assets/beachFloorBottomLeft.png");
         beachFloorBottomRight = tryLoad("assets/beachFloorBottomRight.png", "src/assets/beachFloorBottomRight.png");
 
+        // ice level floor/platform tiles (these are separate from house tiles)
+        iceFloorTopLeft     = tryLoad("assets/iceFloorTopLeft.png",     "src/assets/iceFloorTopLeft.png");
+        iceFloorTopMid      = tryLoad("assets/iceFloorTopMid.png",     "src/assets/iceFloorTopMid.png");
+        iceFloorTopRight    = tryLoad("assets/iceFloorTopRight.png",     "src/assets/iceFloorTopRight.png");
+        iceFloor            = tryLoad("assets/iceFloor.png",            "src/assets/iceFloor.png");
+        
         // umbrella platform tiles
         umbrellaLeft  = tryLoad("assets/umbrellaLeft.png",  "src/assets/umbrellaLeft.png");
         umbrellaMid   = tryLoad("assets/umbrellaMid.png",   "src/assets/umbrellaMid.png");

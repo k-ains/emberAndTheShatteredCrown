@@ -51,10 +51,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             m = m + 1;
         }
         //for debugging only
-        // gameMode = MODE_BEACH;
-        // level = new Beach();
-        gameMode = MODE_TUTORIAL;
-        level = new Tutorial();
+        //gameMode = MODE_BEACH;
+        //level = new Beach();
+        //gameMode = MODE_TUTORIAL;
+        //level = new Tutorial();
+        gameMode = MODE_ICE;
+        level = new Ice();
 
         int startX = level.getSpawnX();
         int startY = level.getSpawnY();
@@ -199,6 +201,8 @@ if (gameMode == MODE_TOWN && Assets.backgroundTown != null) {
     g.drawImage(Assets.backgroundTown, 0, 0, WIDTH, HEIGHT, null);
 } else if (gameMode == MODE_BEACH && Assets.backgroundBeach != null) {
     g.drawImage(Assets.backgroundBeach, 0, 0, WIDTH, HEIGHT, null);
+} else if (gameMode == MODE_ICE && Assets.backgroundIce != null) {
+    g.drawImage(Assets.backgroundIce, 0, 0, WIDTH, HEIGHT, null);
 } else {
     if (Assets.backgroundTower != null) {
         g.drawImage(Assets.backgroundTower, 0, 0, WIDTH, HEIGHT, null);
