@@ -38,9 +38,7 @@ public class Plant extends GameObject {
     public Rectangle getBounds() {
         Rectangle r = new Rectangle(x, y, width, height);
         return r;
-    }
-
-    public void draw(Graphics g) {
+    }    public void draw(Graphics g) {
         java.awt.image.BufferedImage img = null;
 
         if (frame == 0) { img = Assets.plantIdle0; }
@@ -49,7 +47,13 @@ public class Plant extends GameObject {
         if (frame == 3) { img = Assets.plantIdle3; }
 
         if (img != null) {
-            g.drawImage(img, x, y, width, height, null);
+            // Scale up the plant based on frame (frame 3 = normal size, frame 0 = biggest)
+            int growthFactor = (3 - frame); // 3, 2, 1, 0 -> grows from frame 3 to frame 0
+            int scaleW = width + (growthFactor * 8); // grows 8px wider per stage
+            int scaleH = height + (growthFactor * 8); // grows 8px taller per stage
+            int offsetX = (scaleW - width) / 2; // center horizontally
+            int offsetY = scaleH - height; // grow upward from base
+            g.drawImage(img, x - offsetX, y - offsetY, scaleW, scaleH, null);
         }
     }
 }

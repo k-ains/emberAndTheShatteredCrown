@@ -57,12 +57,12 @@ public class Beach extends SimpleLevel {
         // =========================================================
 
         int p0X = previousX;
-        addNormalPlatformWide(p0X, currentY, PLATFORM_TILES);
+        addNormalPlatformWide(p0X, currentY, PLATFORM_TILES, true, 30);
         messageBoxes.add(new MessageBox(p0X + 4 * TILE, currentY - 3 * TILE, true, "Beach: UP/W or SPACE jumps."));
         currentY = currentY - BASE_GAP;
 
         int p1X = pickPlatformX(p0X, minXAllowed, maxXAllowed);
-        addNormalPlatformWide(p1X, currentY, PLATFORM_TILES);
+        addNormalPlatformWide(p1X, currentY, PLATFORM_TILES, true, 30);
         messageBoxes.add(new MessageBox(p1X + 4 * TILE, currentY - 3 * TILE, true, "Next: Umbrellas bounce higher."));
         currentY = currentY - BASE_GAP;
 
@@ -86,12 +86,12 @@ public class Beach extends SimpleLevel {
         currentY = currentY - (BASE_GAP + UMBRELLA_NEXT_BONUS);
 
         int p3X = pickPlatformX(p2X, minXAllowed, maxXAllowed);
-        addNormalPlatformWide(p3X, currentY, PLATFORM_TILES);
+        addNormalPlatformWide(p3X, currentY, PLATFORM_TILES, true, 30);
         messageBoxes.add(new MessageBox(p3X + 4 * TILE, currentY - 3 * TILE, true, "Next: Trees must be climbed (UP/W, DOWN/S)."));
         currentY = currentY - BASE_GAP;
 
         int p4X = pickPlatformX(p3X, minXAllowed, maxXAllowed);
-        addNormalPlatformWide(p4X, currentY, PLATFORM_TILES);
+        addNormalPlatformWide(p4X, currentY, PLATFORM_TILES, false, 0); // tree, no spikes
 
         int treeBaseX = p4X + platformWidthPx / 2 - (3 * TILE) / 2;
         int topY = addTree(treeBaseX, currentY + TILE);
@@ -159,9 +159,24 @@ public class Beach extends SimpleLevel {
                 maybeAddCrabOnWide(platformX, currentY, platformWidthPx, i);
 
                 currentY = currentY - (BASE_GAP + UMBRELLA_NEXT_BONUS);
+
+                // After umbrella, next platform gets fewer spikes
+                if (i + 1 < platformCount) {
+                    int nextX = pickPlatformX(platformX, minXAllowed, maxXAllowed);
+                    addNormalPlatformWide(nextX, currentY, PLATFORM_TILES, true, 10);
+                    previousX = nextX;
+                    i++;
+                    continue;
+                }
             } else {
                 // NORMAL platform
-                addNormalPlatformWide(platformX, currentY, PLATFORM_TILES);
+                boolean allowSpikes = !wantsCheckpoint;
+                int spikeChance = 30;
+                // If previous was tree or umbrella, lower spike chance
+                if (i > 0 && (platformX == previousX)) {
+                    spikeChance = 10;
+                }
+                addNormalPlatformWide(platformX, currentY, PLATFORM_TILES, allowSpikes, spikeChance);
 
                 if (heartBoxes != null) {
                     if (i >= 10 && heartsPlaced < 2) {
@@ -200,7 +215,7 @@ public class Beach extends SimpleLevel {
         }
 
         // END PLATFORM + DOOR BACK TO TOWN (readable on a normal platform)
-        addNormalPlatformWide(previousX, currentY, PLATFORM_TILES);
+        addNormalPlatformWide(previousX, currentY, PLATFORM_TILES, true, 30);
 
         int doorW = 40;
         int doorH = 56;
@@ -269,11 +284,17 @@ public class Beach extends SimpleLevel {
         }
     }
 
-    private void addNormalPlatformWide(int x, int y, int tilesWide) {
+    private void addNormalPlatformWide(int x, int y, int tilesWide, boolean allowSpikes, int spikeChancePercent) {
         int i = 0;
+        int[] spikeSlots = new int[tilesWide];
+        if (allowSpikes) {
+            java.util.List<Integer> slots = new java.util.ArrayList<>();
+            for (int s = 0; s < tilesWide; s++) slots.add(s);
+            java.util.Collections.shuffle(slots, random);
+            for (int s = 0; s < 2 && s < slots.size(); s++) spikeSlots[slots.get(s)] = 1;
+        }
         while (i < tilesWide) {
             Tile t = new Tile(x + i * TILE, y, TILE, TILE, true);
-
             if (i == 0) {
                 t.setSprite(Assets.beachFloorTopLeft);
             } else if (i == tilesWide - 1) {
@@ -281,8 +302,36 @@ public class Beach extends SimpleLevel {
             } else {
                 t.setSprite(Assets.beachFloorTopMid);
             }
-
             tiles.add(t);
+            // --- Add coralSpikes and seaGrass spikes, max 2 per platform, only if allowed and not under message boxes ---
+            if (allowSpikes && spikes != null && spikeSlots[i] == 1) {
+                int spikeX = x + i * TILE;
+                int spikeY = y - 24;
+                boolean overlapsMsg = false;
+                if (messageBoxes != null) {
+                    for (MessageBox box : messageBoxes) {
+                        // Check if the spike would overlap the message box horizontally and vertically
+                        int boxX = box.getX();
+                        int boxY = box.getY();
+                        int boxW = box.getWidth();
+                        int boxH = box.getHeight();
+                        if (spikeX + TILE > boxX && spikeX < boxX + boxW && spikeY + 24 > boxY && spikeY < boxY + boxH) {
+                            overlapsMsg = true;
+                            break;
+                        }
+                    }
+                }
+                if (!overlapsMsg && random.nextInt(100) < spikeChancePercent) {
+                    int spikeRoll = random.nextInt(100);
+                    Spike s = new Spike(spikeX, spikeY, TILE, 24);
+                    if (spikeRoll < 50) {
+                        s.setSprite(Assets.coralSpike);
+                    } else {
+                        s.setSprite(Assets.seagrassSpike);
+                    }
+                    spikes.add(s);
+                }
+            }
             i = i + 1;
         }
     }
@@ -416,8 +465,8 @@ public class Beach extends SimpleLevel {
 
         int margin = 32;
 
-        int leftBound = platformX + margin;
-        int rightBound = platformX + platformWidthPx - margin - enemyW;
+        int leftBound = platformX; // walk to true left edge
+        int rightBound = platformX + platformWidthPx - enemyW; // walk to true right edge
 
         if (rightBound <= leftBound) {
             return;
@@ -433,6 +482,8 @@ public class Beach extends SimpleLevel {
         }
 
         int enemyY = platformY - enemyH;
-        enemies.add(new CrabEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2));
+        CrabEnemy crab = new CrabEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2);
+        crab.setCirclePlatform(true); // Enable circling
+        enemies.add(crab);
     }
 }
