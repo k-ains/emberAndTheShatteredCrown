@@ -138,6 +138,10 @@ public class Assets {
     // ---------- ICE ENEMIES ----------
     public static BufferedImage[] ghostWalk;
     public static BufferedImage ghostFallback;
+    
+    // ---------- CANDY ENEMIES ----------
+    public static BufferedImage[] waspIdle;
+    public static BufferedImage waspFallback;
 
     // ---------- CANDY SPECIAL ----------
     public static BufferedImage candySpin;
@@ -339,6 +343,15 @@ public class Assets {
         // beach spikes
         coralSpike    = tryLoad("assets/coralSpike.png",    "src/assets/coralSpike.png");
         seagrassSpike = tryLoad("assets/seagrassSpike.png", "src/assets/seagrassSpike.png");
+
+        // wasp enemy frames (for candy level)
+        waspIdle = new BufferedImage[2];
+        waspIdle[0] = tryLoad("assets/wasp_idle_0.png", "src/assets/wasp_idle_0.png");
+        waspIdle[1] = tryLoad("assets/wasp_idle_1.png", "src/assets/wasp_idle_1.png");
+        
+        if (waspIdle[0] != null) {
+            waspFallback = waspIdle[0];
+        }
 
         // candy special tiles
         candySpin = tryLoad("assets/candySpin.png", "src/assets/candySpin.png");

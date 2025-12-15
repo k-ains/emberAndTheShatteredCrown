@@ -360,6 +360,6 @@ public class Candy extends SimpleLevel {
         }
 
         int enemyY = platformY - enemyH;
-        enemies.add(new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2));
+        enemies.add(new GhostEnemy(enemyX, enemyY, enemyW, enemyH, leftBound, rightBound, 2, Assets.waspIdle));
     }
 }
